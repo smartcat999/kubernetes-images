@@ -1,1 +1,1 @@
-From gcr.io/distroless/static-debian11:nonroot
+FROM gcr.io/distroless/static-debian11:nonroot

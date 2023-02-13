@@ -1,1 +1,1 @@
-From gcr.io/distroless/java-base-debian11:nonroot
+FROM gcr.io/distroless/java-base-debian11:nonroot
