@@ -1,0 +1,10 @@
+FROM calico/go-build:v0.81 as base
+
+FROM scratch
+
+COPY --from=base / /
+
+ENV GOPROXY="https://goproxy.cn/"
+ENV PATH="/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+CMD ["/bin/sh"]
