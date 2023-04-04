@@ -1,4 +1,5 @@
-.PTONY: build-container
+.PTONY: all
+all: build-local build-cross-container
 
 build-local:
 	docker build -f Dockerfile -t 2030047311/yiyaweb:latest .
