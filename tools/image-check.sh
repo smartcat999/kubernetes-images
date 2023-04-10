@@ -70,7 +70,15 @@ function utils {
         echo "$container_info $imageid $envs"
       fi
     done
+  elif [ "$CMD" = "save" ]; then
+    image=$2
+    repo=${repo:-dockerhub.kubekey.local/huawei}
+    docker pull "$repo/$image" && docker save "$repo/$image" -o "$image.tar.gz"
+  elif [ "$CMD" = "load" ]; then
+    image=$2
+    repo=${repo:-dockerhub.kubekey.local/huawei}
+    docker load -i "$image.tar.gz" && docker push "$repo/$image"
   fi
 }
 
-utils $1
+utils $1 $2
