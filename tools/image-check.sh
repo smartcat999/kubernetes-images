@@ -78,6 +78,40 @@ function utils {
     image=$2
     repo=${repo:-dockerhub.kubekey.local/huawei}
     docker load -i "$image.tar.gz" && docker push "$repo/$image"
+  elif [ "$CMD" = "save_images" ]; then
+    images=(
+      alertmanager:v0.23.0
+      configmap-reload:v0.5.0
+      node-exporter:v1.3.1
+      prometheus-config-reloader:v0.55.1
+      prometheus-operator:v0.55.1
+      prometheus:v2.35.0
+      redis-arm:v6.2.5
+      redis-exporter-arm:v1.44.0
+      thanos:v0.26.0
+    )
+    repo=${repo:-dockerhub.kubekey.local/huawei}
+    # shellcheck disable=SC2068
+    for image in ${images[@]}; do
+      docker pull "$repo/$image" && docker save "$repo/$image" -o "$image.tar.gz"
+    done
+  elif [ "$CMD" = "load_images" ]; then
+    images=(
+          alertmanager:v0.23.0
+          configmap-reload:v0.5.0
+          node-exporter:v1.3.1
+          prometheus-config-reloader:v0.55.1
+          prometheus-operator:v0.55.1
+          prometheus:v2.35.0
+          redis-arm:v6.2.5
+          redis-exporter-arm:v1.44.0
+          thanos:v0.26.0
+    )
+    repo=${repo:-dockerhub.kubekey.local/huawei}
+    # shellcheck disable=SC2068
+    for image in ${images[@]}; do
+        docker load -i "$image.tar.gz" && docker push "$repo/$image"
+    done
   fi
 }
 
