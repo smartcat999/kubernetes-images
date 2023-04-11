@@ -109,11 +109,21 @@ function utils {
     )
     repo=${repo:-dockerhub.kubekey.local/huawei}
     sep=${sep:-:}
+    local=${local:-flase}
     # shellcheck disable=SC2068
     for image in ${images[@]}; do
-      # shellcheck disable=SC2001
-      filename=$(echo "$image.tar.gz" | sed "s/:/$sep/")
-      if [ -f "$image.tar.gz" ]; then
+      if [ $local = true ]; then
+        image_name=$(ls -l | grep $(echo $image | awk -F : '{print $1:$2}') | awk '{print $9}')
+        if [ "$image_name" = "" ]; then
+          echo "$image not found"
+          continue
+        fi
+        filename="$image_name"
+      else
+        # shellcheck disable=SC2001
+        filename=$(echo "$image.tar.gz" | sed "s/:/$sep/")
+      fi
+      if [ -f "$filename" ]; then
         image_tag=$(docker load -i "$filename" | awk '{print $3}')
         # shellcheck disable=SC2154
         docker tag "$image_tag" "$repo/$image"
