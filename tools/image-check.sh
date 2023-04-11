@@ -97,23 +97,30 @@ function utils {
     done
   elif [ "$CMD" = "load_images" ]; then
     images=(
-          alertmanager:v0.23.0
-          configmap-reload:v0.5.0
-          node-exporter:v1.3.1
-          prometheus-config-reloader:v0.55.1
-          prometheus-operator:v0.55.1
-          prometheus:v2.35.0
-          redis-arm:v6.2.5
-          redis-exporter-arm:v1.44.0
-          thanos:v0.26.0
+      alertmanager:v0.23.0
+      configmap-reload:v0.5.0
+      node-exporter:v1.3.1
+      prometheus-config-reloader:v0.55.1
+      prometheus-operator:v0.55.1
+      prometheus:v2.35.0
+      redis-arm:v6.2.5
+      redis-exporter-arm:v1.44.0
+      thanos:v0.26.0
     )
     repo=${repo:-dockerhub.kubekey.local/huawei}
+    sep=${sep:-:}
     # shellcheck disable=SC2068
     for image in ${images[@]}; do
-        image_tag=$(docker load -i "$image.tar.gz" | awk '{print $3}')
+      # shellcheck disable=SC2001
+      filename=$(echo "$image" | sed "s/:/$sep/")
+      if [ -f "$image.tar.gz" ]; then
+        image_tag=$(docker load -i "$filename" | awk '{print $3}')
         # shellcheck disable=SC2154
         docker tag "$image_tag" "$repo/$image"
         docker push "$repo/$image"
+      else
+        echo "$filename not found"
+      fi
     done
   fi
 }
