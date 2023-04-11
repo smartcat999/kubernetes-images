@@ -112,7 +112,7 @@ function utils {
     # shellcheck disable=SC2068
     for image in ${images[@]}; do
       # shellcheck disable=SC2001
-      filename=$(echo "$image" | sed "s/:/$sep/")
+      filename=$(echo "$image.tar.gz" | sed "s/:/$sep/")
       if [ -f "$image.tar.gz" ]; then
         image_tag=$(docker load -i "$filename" | awk '{print $3}')
         # shellcheck disable=SC2154
