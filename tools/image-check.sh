@@ -110,7 +110,7 @@ function utils {
     repo=${repo:-dockerhub.kubekey.local/huawei}
     # shellcheck disable=SC2068
     for image in ${images[@]}; do
-        image_tag=docker load -i "$image.tar.gz" | awk '{print $3}'
+        image_tag=$(docker load -i "$image.tar.gz" | awk '{print $3}')
         # shellcheck disable=SC2154
         docker tag "$image_tag" "$repo/$image"
         docker push "$repo/$image"
