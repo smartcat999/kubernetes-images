@@ -35,6 +35,14 @@ function pull_update_images {
 }
 
 
+function dump_permission_file_images {
+  # shellcheck disable=SC2068
+  for elem in ${target[@]}; do
+    ssh "root@$elem" "/root/image-check.sh permission"
+  done
+}
+
+
 CMD=$1
 
 if [ "$CMD" = "root" ]; then
@@ -43,6 +51,8 @@ elif [ "$CMD" = "tools" ]; then
   dump_tools_containers
 elif [ "$CMD" = "env" ]; then
   dump_envs_containers
+elif [ "$CMD" = "permission" ]; then
+  dump_permission_file_images
 elif [ "$CMD" = "pull" ]; then
   pull_update_images
 fi
