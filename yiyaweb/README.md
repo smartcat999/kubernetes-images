@@ -11,7 +11,7 @@ yiyaweb
 ├── scripts
 └── yiyai.conf
 ```
-###### 2 build container && publish image
+###### 2 build && publish image
 ```shell
 # 构建发布方式 二选一
 # 自定义镜像tag
