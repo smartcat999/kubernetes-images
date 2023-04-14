@@ -42,6 +42,12 @@ function dump_permission_file_images {
   done
 }
 
+function clean_image_unused() {
+    # shellcheck disable=SC2068
+    for elem in ${target[@]}; do
+      ssh "root@$elem" "docker system prune -a -f"
+    done
+}
 
 CMD=$1
 
@@ -55,4 +61,6 @@ elif [ "$CMD" = "permission" ]; then
   dump_permission_file_images
 elif [ "$CMD" = "pull" ]; then
   pull_update_images
+elif [ "$CMD" = "clean" ]; then
+  clean_image_unused
 fi
