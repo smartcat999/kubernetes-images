@@ -56,6 +56,11 @@ function utils {
       if [ "$overlays" = "" ]; then
         continue
       fi
+#      image=$(docker image ls | awk '{if (NR>1){print $3}}' | \
+#              xargs docker inspect --format '{{.Id}} {{.GraphDriver.Data}}' 2>/dev/null | \
+#              grep -E $(echo $overlays | sed 's/ /|/g') | awk '{print $1}')
+#      echo $(find $(docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}}) 2>/dev/null| grep -i "/${tool}$")
+
       docker image ls | awk '{if (NR>1){print $3}}' | \
       xargs docker inspect --format '{{.Id}}, {{index .RepoTags 0}}, {{.GraphDriver.Data}}' 2>/dev/null | \
       grep -E $(echo $overlays | sed 's/ /|/g') | awk -F, '{printf("%s %s %s\n", "'$tool'", $1, $2)}'
@@ -94,8 +99,8 @@ function utils {
       # shellcheck disable=SC2005
       repo_tags=$(docker inspect $image --format="{{index .RepoTags 0}}" 2>/dev/null)
       # shellcheck disable=SC2086
-      docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.conf" -ls 2>/dev/null | awk '{printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $3, $11)}'
-      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.conf" -ls 2>/dev/null | awk '{printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $3, $11)}'
+      docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" -ls 2>/dev/null | awk '{printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $3, $11)}'
+      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" -ls 2>/dev/null | awk '{printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $3, $11)}'
     done
   elif [ "$CMD" = "save" ]; then
     image=$2
