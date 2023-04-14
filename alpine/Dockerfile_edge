@@ -1,0 +1,26 @@
+FROM alpine:edge as base
+
+RUN apk update && \
+    apk --no-cache upgrade --available && \
+    sync && \
+    rm /var/cache/apk/*
+
+RUN rm /usr/bin/id
+
+#RUN chmod 600 /etc/udhcpd.conf && \
+#    chmod 600 /etc/sysctl.conf && \
+#    chmod 600 /etc/nsswitch.conf && \
+#    chmod 600 /etc/ssl/certs/ca-certificates.crt && \
+#    chmod 600 /etc/modprobe.d/aliases.conf && \
+#    chmod 600 /etc/modprobe.d/kms.conf && \
+#    chmod 600 /etc/modprobe.d/i386.conf && \
+#    chmod 600 /etc/modprobe.d/blacklist.conf
+
+RUN find /etc -type f ! -perm 600 -name "*.conf" -o ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" | grep -v "/etc/resolv.conf" | xargs -I {} chmod 600 {}
+RUN find /lib -type f ! -perm 600 -name "*.conf" -o ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" | xargs -I {} chmod 600 {}
+
+FROM scratch
+
+COPY --from=base / /
+
+CMD ["sh"]
