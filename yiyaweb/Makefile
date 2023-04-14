@@ -4,11 +4,14 @@ all: build-local build-cross-container
 TAG ?= latest
 
 build-local:
-	docker build -f Dockerfile -t 2030047311/yiyaweb:latest .
-	docker push 2030047311/yiyaweb:latest
+	docker build -f Dockerfile -t 2030047311/yiyaweb:${TAG} .
+	docker push 2030047311/yiyaweb:${TAG}
 
-build-cross-container:
+build-cross-image:
 	docker buildx build --platform linux/amd64,linux/arm64 --push -f Dockerfile -t 2030047311/yiyaweb:${TAG} .
 
-publish: build-cross-container;
+publish-image: build-local;
+	scripts/publish.sh 2030047311/yiyaweb:${TAG}
+
+publish-multi-image: build-cross-image;
 	scripts/publish.sh 2030047311/yiyaweb:${TAG}
