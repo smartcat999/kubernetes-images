@@ -10,6 +10,5 @@ build-local:
 build-cross-container:
 	docker buildx build --platform linux/amd64,linux/arm64 --push -f Dockerfile -t 2030047311/yiyaweb:${TAG} .
 
-
 publish: build-cross-container;
 	scripts/publish.sh 2030047311/yiyaweb:${TAG}
