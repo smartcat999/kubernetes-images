@@ -1,5 +1,24 @@
 #!/bin/bash
 
+# 1. 检查privileged特权容器
+# ./image-check.sh privileged
+
+# 2. 检查root用户容器
+# ./image-check.sh root
+
+# 3. 检查包含调试/嗅探工具的镜像
+# ./image-check.sh tools
+
+# 4. 检查环境变量中含有敏感信息的容器
+# ./image-check.sh env
+
+# 5. 检查配置文件/证书文件权限不是600的镜像
+# ./image-check.sh permission
+
+# 6. 检查挂载k8s token的容器
+# ./image-check.sh token
+
+
 IMAGE_UPDATE=(
   alertmanager:v0.23.0
   configmap-reload:v0.5.0
@@ -101,6 +120,16 @@ function utils {
       # shellcheck disable=SC2086
       docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" -ls 2>/dev/null | awk '{printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $3, $11)}'
       docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" -ls 2>/dev/null | awk '{printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $3, $11)}'
+    done
+  elif [ "$CMD" = "token" ]; then
+    token_dirs=$(find / -name "kube-api-access-*" 2>/dev/null)
+    echo "token | containers"
+    # shellcheck disable=SC2068
+    for token_dir in ${token_dirs[@]};do
+      token="$token_dir/token"
+      container_dir=$(echo $token_dir| awk -F "/" '{for(i=1;i<7;i++) printf("%s/",$i)}')
+      containers=$(ls $container_dir/containers | awk '{for(i=1;i<4;i++) if($i!="")printf("%s ",$i)}')
+      echo "$token $containers"
     done
   elif [ "$CMD" = "save" ]; then
     image=$2
