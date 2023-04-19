@@ -118,8 +118,8 @@ function utils {
       # shellcheck disable=SC2005
       repo_tags=$(docker inspect $image --format="{{index .RepoTags 0}}" 2>/dev/null)
       # shellcheck disable=SC2086
-      docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" -ls 2>/dev/null | awk '{printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $3, $11)}'
-      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" -ls 2>/dev/null | awk '{printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $3, $11)}'
+      docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null | xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
+      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null | xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
     done
   elif [ "$CMD" = "token" ]; then
     token_dirs=$(find / -name "kube-api-access-*" 2>/dev/null)
@@ -133,10 +133,12 @@ function utils {
     # shellcheck disable=SC2068
     for token_dir in ${token_dirs[@]};do
       token="$token_dir/token"
-      container_dir=$(echo $token_dir| awk -F "/" '{for(i=1;i<7;i++) printf("%s/",$i)}')
-      containers=$(ls $container_dir/containers | awk '{for(i=1;i<4;i++) if($i!="")printf("%s ",$i)}')
+      container_dir=$(echo "$token_dir"| awk -F "/" '{for(i=1;i<7;i++) printf("%s/",$i)}')
+      # shellcheck disable=SC2012
+      containers=$(ls "$container_dir"/containers | awk '{for(i=1;i<4;i++) if($i!="")printf("%s ",$i)}')
       echo "$hostname $token $containers"
-      kubectl --token=$(cat $token) --kubeconfig=/dev/null --server=${server} --insecure-skip-tls-verify=true auth can-i --list
+      # shellcheck disable=SC2046
+      kubectl --token=$(cat "$token") --kubeconfig=/dev/null --server="${server}" --insecure-skip-tls-verify=true auth can-i --list
     done
   elif [ "$CMD" = "save" ]; then
     image=$2
