@@ -123,13 +123,20 @@ function utils {
     done
   elif [ "$CMD" = "token" ]; then
     token_dirs=$(find / -name "kube-api-access-*" 2>/dev/null)
-    echo "token | containers"
+    hostname=$(sh -c hostname)
+    node_ip=$(kubectl get node -o wide | awk '{if (NR==2){print $6}}')
+    if [ "$node_ip" = "" ]; then
+      return
+    fi
+    server=${server:-https://$node_ip:6443}
+    echo "hostname | token | containers"
     # shellcheck disable=SC2068
     for token_dir in ${token_dirs[@]};do
       token="$token_dir/token"
       container_dir=$(echo $token_dir| awk -F "/" '{for(i=1;i<7;i++) printf("%s/",$i)}')
       containers=$(ls $container_dir/containers | awk '{for(i=1;i<4;i++) if($i!="")printf("%s ",$i)}')
-      echo "$token $containers"
+      echo "$hostname $token $containers"
+      kubectl --token=$(cat $token) --kubeconfig=/dev/null --server=${server} --insecure-skip-tls-verify=true auth can-i --list
     done
   elif [ "$CMD" = "save" ]; then
     image=$2
