@@ -10,7 +10,7 @@ function dump_root_containers {
   ./image-check.sh root
   # shellcheck disable=SC2068
   for elem in ${target[@]}; do
-    ssh "root@$elem" "/root/image-check.sh root"
+    ssh -q "root@$elem" "/root/image-check.sh root"
   done
 }
 
@@ -18,7 +18,7 @@ function dump_tools_containers {
   ./image-check.sh tools
   # shellcheck disable=SC2068
   for elem in ${target[@]}; do
-    ssh "root@$elem" "/root/image-check.sh tools"
+    ssh -q "root@$elem" "/root/image-check.sh tools"
   done
 }
 
@@ -26,7 +26,7 @@ function dump_envs_containers {
   ./image-check.sh env
   # shellcheck disable=SC2068
   for elem in ${target[@]}; do
-    ssh "root@$elem" "/root/image-check.sh env"
+    ssh -q "root@$elem" "/root/image-check.sh env"
   done
 }
 
@@ -34,7 +34,7 @@ function pull_update_images {
   ./image-check.sh pull
   # shellcheck disable=SC2068
   for elem in ${target[@]}; do
-    ssh "root@$elem" "/root/image-check.sh pull"
+    ssh -q "root@$elem" "/root/image-check.sh pull"
   done
 }
 
@@ -43,7 +43,7 @@ function dump_permission_file_images {
   ./image-check.sh permission
   # shellcheck disable=SC2068
   for elem in ${target[@]}; do
-    ssh "root@$elem" "/root/image-check.sh permission"
+    ssh -q "root@$elem" "/root/image-check.sh permission"
   done
 }
 
@@ -52,7 +52,7 @@ function dump_api_access_token_containers {
   ./image-check.sh token
   # shellcheck disable=SC2068
   for elem in ${target[@]}; do
-    ssh "root@$elem" "/root/image-check.sh token"
+    ssh -q "root@$elem" "/root/image-check.sh token"
   done
 }
 
@@ -60,7 +60,7 @@ function clean_image_unused() {
     docker system prune -a -f
     # shellcheck disable=SC2068
     for elem in ${target[@]}; do
-      ssh "root@$elem" "docker system prune -a -f"
+      ssh -q "root@$elem" "docker system prune -a -f"
     done
 }
 
