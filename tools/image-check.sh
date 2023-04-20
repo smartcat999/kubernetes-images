@@ -118,8 +118,12 @@ function utils {
       # shellcheck disable=SC2005
       repo_tags=$(docker inspect $image --format="{{index .RepoTags 0}}" 2>/dev/null)
       # shellcheck disable=SC2086
-      docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null | xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
-      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null | xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
+      docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | \
+      xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null | \
+      xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
+      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | \
+      xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null | \
+      xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
     done
   elif [ "$CMD" = "token" ]; then
     token_dirs=$(find / -name "kube-api-access-*" 2>/dev/null)
