@@ -1,67 +1,68 @@
 #!/bin/bash
 
-target=${target:-192.168.200.3 192.168.200.4 192.168.200.5 192.168.200.6 192.168.200.7}
+if [ ${debug:-false} = true ]; then
+  set -x
+fi
+
+target=${target:-192.168.200.2 192.168.200.3 192.168.200.4 192.168.200.5 192.168.200.6 192.168.200.7}
+
+hostname=$(sh -c hostname)
+node_ip=$(kubectl get node -o wide | grep "$hostname" | awk '{print $6}')
+if [ "$node_ip" = "" ]; then
+  return
+fi
+
 # shellcheck disable=SC2068
 for elem in ${target[@]}; do
+  if [ "$elem" = "$node_ip" ]; then
+    continue
+  fi
   scp image-check.sh "root@$elem:/root/"
 done
 
-function dump_root_containers {
-  ./image-check.sh root
+function batch_run() {
   # shellcheck disable=SC2068
   for elem in ${target[@]}; do
-    ssh -q "root@$elem" "/root/image-check.sh root"
+    if [ "$elem" = "$node_ip" ]; then
+      continue
+    fi
+    ssh -q "root@$elem" $1
   done
+}
+
+function dump_root_containers {
+  ./image-check.sh root
+  batch_run "/root/image-check.sh root"
 }
 
 function dump_tools_containers {
   ./image-check.sh tools
-  # shellcheck disable=SC2068
-  for elem in ${target[@]}; do
-    ssh -q "root@$elem" "/root/image-check.sh tools"
-  done
+  batch_run "/root/image-check.sh tools"
 }
 
 function dump_envs_containers {
   ./image-check.sh env
-  # shellcheck disable=SC2068
-  for elem in ${target[@]}; do
-    ssh -q "root@$elem" "/root/image-check.sh env"
-  done
+  batch_run "/root/image-check.sh env"
 }
 
 function pull_update_images {
   ./image-check.sh pull
-  # shellcheck disable=SC2068
-  for elem in ${target[@]}; do
-    ssh -q "root@$elem" "/root/image-check.sh pull"
-  done
+  batch_run "/root/image-check.sh pull"
 }
-
 
 function dump_permission_file_images {
   ./image-check.sh permission
-  # shellcheck disable=SC2068
-  for elem in ${target[@]}; do
-    ssh -q "root@$elem" "/root/image-check.sh permission"
-  done
+  batch_run "/root/image-check.sh permission"
 }
-
 
 function dump_api_access_token_containers {
   ./image-check.sh token
-  # shellcheck disable=SC2068
-  for elem in ${target[@]}; do
-    ssh -q "root@$elem" "/root/image-check.sh token"
-  done
+  batch_run "/root/image-check.sh token"
 }
 
 function clean_image_unused() {
-    docker system prune -a -f
-    # shellcheck disable=SC2068
-    for elem in ${target[@]}; do
-      ssh -q "root@$elem" "docker system prune -a -f"
-    done
+  docker system prune -a -f
+  batch_run "docker system prune -a -f"
 }
 
 CMD=$1
