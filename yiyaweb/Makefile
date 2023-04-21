@@ -1,5 +1,5 @@
 .PTONY: all
-all: build-local build-cross-container
+all: build-local build-cross-image publish-image publish-multi-image
 
 TAG ?= latest
 
