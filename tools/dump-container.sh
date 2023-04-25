@@ -60,6 +60,11 @@ function dump_api_access_token_containers {
   batch_run "/root/image-check.sh token"
 }
 
+function dump_openssl_containers {
+  ./image-check.sh openssl
+  batch_run "/root/image-check.sh openssl"
+}
+
 function clean_image_unused() {
   docker system prune -a -f
   batch_run "docker system prune -a -f"
@@ -77,6 +82,8 @@ elif [ "$CMD" = "permission" ]; then
   dump_permission_file_images
 elif [ "$CMD" = "token" ]; then
   dump_api_access_token_containers
+elif [[ "$CMD" = "openssl" ]]; then
+  dump_openssl_containers
 elif [ "$CMD" = "pull" ]; then
   pull_update_images
 elif [ "$CMD" = "clean" ]; then

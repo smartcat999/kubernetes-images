@@ -18,7 +18,6 @@
 # 6. 检查挂载k8s token的容器
 # ./image-check.sh token
 
-
 IMAGE_UPDATE=(
   alertmanager:v0.23.0
   configmap-reload:v0.5.0
@@ -68,21 +67,16 @@ function utils {
     echo "tool | Id | RepoTags"
     # shellcheck disable=SC2068
     for tool in ${tools[@]}; do
-#      echo "$tool"
       # shellcheck disable=SC2046
       # shellcheck disable=SC1066
       overlays=$(find /var/lib/docker | grep -i "/${tool}$" | awk -F/ '{print $6}' | uniq | sort | grep -v "^$")
       if [ "$overlays" = "" ]; then
         continue
       fi
-#      image=$(docker image ls | awk '{if (NR>1){print $3}}' | \
-#              xargs docker inspect --format '{{.Id}} {{.GraphDriver.Data}}' 2>/dev/null | \
-#              grep -E $(echo $overlays | sed 's/ /|/g') | awk '{print $1}')
-#      echo $(find $(docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}}) 2>/dev/null| grep -i "/${tool}$")
 
-      docker image ls | awk '{if (NR>1){print $3}}' | \
-      xargs docker inspect --format '{{.Id}}, {{index .RepoTags 0}}, {{.GraphDriver.Data}}' 2>/dev/null | \
-      grep -E $(echo $overlays | sed 's/ /|/g') | awk -F, '{printf("%s %s %s\n", "'$tool'", $1, $2)}'
+      docker image ls | awk '{if (NR>1){print $3}}' |
+        xargs docker inspect --format '{{.Id}}, {{index .RepoTags 0}}, {{.GraphDriver.Data}}' 2>/dev/null |
+        grep -E $(echo $overlays | sed 's/ /|/g') | awk -F, '{printf("%s %s %s\n", "'$tool'", $1, $2)}'
       # shellcheck disable=SC2181
       if [ $? != 0 ]; then
         continue
@@ -118,13 +112,13 @@ function utils {
       # shellcheck disable=SC2005
       repo_tags=$(docker inspect $image --format="{{index .RepoTags 0}}" 2>/dev/null)
       # shellcheck disable=SC2086
-      docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | \
-      xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" 2>/dev/null | \
-      xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
+      docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' |
+        xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null |
+        xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
       # shellcheck disable=SC2086
-      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' | \
-      xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" 2>/dev/null | \
-      xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
+      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' |
+        xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null |
+        xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
     done
   elif [ "$CMD" = "token" ]; then
     token_dirs=$(find / -name "kube-api-access-*" 2>/dev/null)
@@ -136,14 +130,42 @@ function utils {
     server=${server:-https://$node_ip:6443}
     echo "hostname | token | containers"
     # shellcheck disable=SC2068
-    for token_dir in ${token_dirs[@]};do
+    for token_dir in ${token_dirs[@]}; do
       token="$token_dir/token"
-      container_dir=$(echo "$token_dir"| awk -F "/" '{for(i=1;i<7;i++) printf("%s/",$i)}')
+      container_dir=$(echo "$token_dir" | awk -F "/" '{for(i=1;i<7;i++) printf("%s/",$i)}')
       # shellcheck disable=SC2012
       containers=$(ls "$container_dir"/containers | awk '{for(i=1;i<4;i++) if($i!="")printf("%s ",$i)}')
       echo "$hostname $token $containers"
       # shellcheck disable=SC2046
       kubectl --token=$(cat "$token") --kubeconfig=/dev/null --server="${server}" --insecure-skip-tls-verify=true auth can-i --list
+    done
+  elif [ "$CMD" = "openssl" ]; then
+    echo "image | tag | container | file"
+    containers=$(docker ps | awk 'NR!=1 {print $1}')
+    # shellcheck disable=SC2068
+    for container in ${containers[@]}; do
+      # shellcheck disable=SC2046
+      # shellcheck disable=SC1066
+      container_info=$(docker ps --format="{{.ID}}  {{.Image}}  {{.Names}}" | grep "$container")
+      image=$(docker ps | grep "$container" | awk '{print $2}')
+      repo_tags=$(docker inspect "$image" --format="{{index .RepoTags 0}}" 2>/dev/null)
+      mounts=$(docker inspect "$container" -f '{{range .Mounts}}{{printf "%s\n" .Source}}{{end}}')
+
+      # shellcheck disable=SC2034
+      for mount_dir in ${mounts[@]}; do
+        if [[ $mount_dir = "/proc" ]] || [[ $mount_dir = "/sys" ]] || [[ $mount_dir = "/" ]]; then
+          continue
+        fi
+        mount_files=$(find "$mount_dir" -name "*.key")
+        for mount_file in ${mount_files[@]}; do
+          is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$mount_file")
+          if [[ $is_encrypted = '1' ]]; then
+            continue
+          else
+            echo "$image, $repo_tags, $container, $mount_file"
+          fi
+        done
+      done
     done
   elif [ "$CMD" = "save" ]; then
     image=$2
