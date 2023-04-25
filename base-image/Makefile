@@ -4,5 +4,5 @@ all: edge;$(info $(M)...Begin to test and build all of binary.) @ ## Test and bu
 REPO ?= 2030047311
 EDGE_TAG ?= edge
 
-build-edge:
-	docker buildx build -f Dockerfile_edge --platform linux/amd64,linux/arm64 --push -t ${REPO}/alpine:${EDGE_TAG} .
+build-alpine-edge:
+	docker buildx build -f ./alpine/Dockerfile_edge --platform linux/amd64,linux/arm64 --push -t ${REPO}/alpine:${EDGE_TAG} ./alpine/
