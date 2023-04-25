@@ -166,6 +166,30 @@ function utils {
           fi
         done
       done
+
+      upper_files=$(docker inspect "$container" -f {{.GraphDriver.Data.UpperDir}} | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key")
+      if [[ $upper_files != "" ]]; then
+        for upper_file in ${upper_files[@]}; do
+          is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$upper_file")
+          if [[ $is_encrypted = '1' ]]; then
+            continue
+          else
+            echo "$image, $repo_tags, $container, $upper_file"
+          fi
+        done
+      fi
+      lower_files=$(docker inspect "$container" -f {{.GraphDriver.Data.LowerDir}} | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key")
+      if [[ $lower_files != "" ]]; then
+        for lower_file in ${lower_files[@]}; do
+          is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$lower_file")
+          if [[ $is_encrypted = '1' ]]; then
+            continue
+          else
+            echo "$image, $repo_tags, $container, $lower_file"
+          fi
+        done
+      fi
+
     done
   elif [ "$CMD" = "save" ]; then
     image=$2
