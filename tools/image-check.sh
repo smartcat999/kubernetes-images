@@ -18,6 +18,9 @@
 # 6. 检查挂载k8s token的容器
 # ./image-check.sh token
 
+# 7. 检查容器本身的证书私钥 以及 挂载的私钥是否加密
+# ./image-check.sh openssl
+
 IMAGE_UPDATE=(
   alertmanager:v0.23.0
   configmap-reload:v0.5.0
