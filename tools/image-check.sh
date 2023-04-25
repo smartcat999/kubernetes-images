@@ -172,7 +172,7 @@ function utils {
         done
       done
 
-      upper_files=$(docker inspect "$container" -f {{.GraphDriver.Data.UpperDir}} | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key")
+      upper_files=$(docker inspect "$container" -f {{.GraphDriver.Data.UpperDir}} | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key" 2>/dev/null)
       if [[ $upper_files != "" ]]; then
         for upper_file in ${upper_files[@]}; do
           is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$upper_file")
@@ -183,7 +183,7 @@ function utils {
           fi
         done
       fi
-      lower_files=$(docker inspect "$container" -f {{.GraphDriver.Data.LowerDir}} | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key")
+      lower_files=$(docker inspect "$container" -f {{.GraphDriver.Data.LowerDir}} | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key" 2>/dev/null)
       if [[ $lower_files != "" ]]; then
         for lower_file in ${lower_files[@]}; do
           is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$lower_file")
