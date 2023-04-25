@@ -105,8 +105,9 @@ function utils {
       fi
     done
   elif [ "$CMD" = "permission" ]; then
+    hostname=$(sh -c hostname)
     images=$(docker image ls | awk 'NR!=1 {print $3}')
-    echo "image | permission | file"
+    echo "hostname | image | permission | file"
     # shellcheck disable=SC2068
     for image in ${images[@]}; do
       # shellcheck disable=SC2005
@@ -114,11 +115,11 @@ function utils {
       # shellcheck disable=SC2086
       docker inspect "${image}" -f {{.GraphDriver.Data.UpperDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' |
         xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null |
-        xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
+        xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s %s\n", "'$hostname'", "'$image'", "'$repo_tags'", $1, $9)}}'
       # shellcheck disable=SC2086
       docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' |
         xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null |
-        xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s\n","'$image'", "'$repo_tags'", $1, $9)}}'
+        xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s %s\n", "'$hostname'", "'$image'", "'$repo_tags'", $1, $9)}}'
     done
   elif [ "$CMD" = "token" ]; then
     token_dirs=$(find / -name "kube-api-access-*" 2>/dev/null)
@@ -140,7 +141,8 @@ function utils {
       kubectl --token=$(cat "$token") --kubeconfig=/dev/null --server="${server}" --insecure-skip-tls-verify=true auth can-i --list
     done
   elif [ "$CMD" = "openssl" ]; then
-    echo "image | tag | container | file"
+    hostname=$(sh -c hostname)
+    echo " hostname | image | tag | container | file"
     containers=$(docker ps | awk 'NR!=1 {print $1}')
     # shellcheck disable=SC2068
     for container in ${containers[@]}; do
@@ -162,7 +164,7 @@ function utils {
           if [[ $is_encrypted = '1' ]]; then
             continue
           else
-            echo "$image, $repo_tags, $container, $mount_file"
+            echo "$hostname $image, $repo_tags, $container, $mount_file"
           fi
         done
       done
@@ -174,7 +176,7 @@ function utils {
           if [[ $is_encrypted = '1' ]]; then
             continue
           else
-            echo "$image, $repo_tags, $container, $upper_file"
+            echo "$hostname $image, $repo_tags, $container, $upper_file"
           fi
         done
       fi
@@ -185,7 +187,7 @@ function utils {
           if [[ $is_encrypted = '1' ]]; then
             continue
           else
-            echo "$image, $repo_tags, $container, $lower_file"
+            echo "$hostname $image, $repo_tags, $container, $lower_file"
           fi
         done
       fi
