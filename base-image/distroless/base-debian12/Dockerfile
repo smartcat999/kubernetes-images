@@ -7,7 +7,7 @@ USER root
 COPY --from=os /busybox/sh /bin/sh
 COPY --from=os /busybox/ /busybox/
 
-RUN /busybox/rm -rf /usr/share/gcc /usr/share/gdb /etc/ssl/certs /usr/lib/ssl/cert.pem /busybox /bin/sh
+RUN /busybox/rm -rf /usr/share/gcc /usr/share/gdb /etc/ssl/certs /busybox /bin/sh
 
 FROM scratch
 
