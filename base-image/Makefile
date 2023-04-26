@@ -9,3 +9,6 @@ build-alpine-edge:
 
 build-nodejs20-debian12:
 	docker buildx build -f ./distroless/nodejs20/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/nodejs20-debian12:${EDGE_TAG} ./distroless/nodejs20/
+
+build-base-debian12:
+	docker buildx build -f ./distroless/base-debian12/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/base-debian12:${EDGE_TAG} ./distroless/base-debian12/
