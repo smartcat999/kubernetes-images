@@ -25,7 +25,7 @@ do
   # shellcheck disable=SC2154
   NEW_IMAGE=$REPO/$IMAGE-$(echo "$element" | awk -F'/' '{for (i=1; i<=NF; i++) if (i==NF) print $i}')
   docker tag "$1" "$NEW_IMAGE"
-  docker push "$NEW_IMAGE"
+#  docker push "$NEW_IMAGE"
   docker manifest create "$REPO/$IMAGE" -a "$NEW_IMAGE"
 done
 
