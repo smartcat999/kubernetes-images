@@ -17,8 +17,7 @@ if [[ ${debug:-flase} = "true" ]]; then
 fi
 
 CMD=$1
-
-IMAGE_UPDATE=(
+DEFAULT_IMAGE=(
   ks-apiserver:v3.3.2-HW
   ks-controller-manager:v3.3.2-HW
   alertmanager:v0.23.0
@@ -31,6 +30,8 @@ IMAGE_UPDATE=(
   redis-exporter-arm:v1.44.0
   thanos:v0.26.0
 )
+# shellcheck disable=SC2128
+IMAGE_UPDATE=${IMAGE_UPDATE:-"$DEFAULT_IMAGE"}
 
 function sync-docker-harbor() {
   SOURCE_IMAGE_HUB=2030047311
@@ -94,7 +95,7 @@ function save-images() {
   repo=${repo:-dockerhub.kubekey.local/huawei}
   # shellcheck disable=SC2068
   for image in ${IMAGE_UPDATE[@]}; do
-    file="$(echo image | sed 's/:/_/g').tar.gz"
+    file="$(echo $image | sed 's/:/_/g').tar.gz"
     docker pull "$repo/$image" && docker save "$repo/$image" -o "${file}"
   done
 }
@@ -105,7 +106,7 @@ function load-images() {
   # shellcheck disable=SC2068
   for image in ${IMAGE_UPDATE[@]}; do
     # shellcheck disable=SC2001
-    filename="$(echo image | sed 's/:/_/g').tar.gz"
+    filename="$(echo $image | sed 's/:/_/g').tar.gz"
     if [ -f "$filename" ]; then
       image_tag=$(docker load -i "$filename" | awk '{print $3}')
       # shellcheck disable=SC2154
