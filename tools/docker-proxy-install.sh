@@ -19,6 +19,12 @@ elif [[ "$os" = "x86_64" ]]; then
   curl -SsL "https://github.com/v2fly/v2ray-core/releases/download/${V2Ray_VERSION}/v2ray-linux-64.zip" \
     -o v2ray.zip
 fi
+
+if [[ ! -f "v2ray.zip" ]]; then
+  echo "Download File Error"
+  exit
+fi
+
 unzip v2ray.zip -o /root/v2ray/
 
 # 2. COPY file to /usr/local/bin/
