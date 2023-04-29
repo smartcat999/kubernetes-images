@@ -13,10 +13,10 @@ V2Ray_VERSION=v5.4.1
 cd /root/
 os=$(uname -m)
 if [[ "$os" = "aarch64" ]]; then
-  curl -SsL https://github.com/v2fly/v2ray-core/releases/download/${V2Ray_VERSION}/v2ray-linux-arm64-v8a.zip \
+  curl -SsL "https://github.com/v2fly/v2ray-core/releases/download/${V2Ray_VERSION}/v2ray-linux-arm64-v8a.zip" \
     -o v2ray.zip
 elif [[ "$os" = "x86_64" ]]; then
-  curl -SsL https://github.com/v2fly/v2ray-core/releases/download/v5.4.1/v2ray-linux-64.zip \
+  curl -SsL "https://github.com/v2fly/v2ray-core/releases/download/${V2Ray_VERSION}/v2ray-linux-64.zip" \
     -o v2ray.zip
 fi
 unzip v2ray.zip -o /root/v2ray/
