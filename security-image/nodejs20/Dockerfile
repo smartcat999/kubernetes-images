@@ -1,4 +1,4 @@
-FROM alpine:3.17 as base
+FROM alpine:edge as base
 
 ENV NODE_VERSION 20.0.0
 
