@@ -15,3 +15,6 @@ publish-image: build-local;
 
 publish-multi-image: build-cross-image;
 	scripts/publish.sh 2030047311/yiyaweb:${TAG}
+
+publish-multi-image-local: build-cross-image
+	kubectl -n yiyaweb set image deployments.apps yiyaweb-frontend yiyaweb-frontend=2030047311/yiyaweb:${TAG}
