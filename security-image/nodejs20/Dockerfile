@@ -98,6 +98,7 @@ RUN apk add shadow && \
     usermod -s /sbin/nologin -g nogroup sync && \
     usermod -s /sbin/nologin -g nogroup shutdown && \
     usermod -s /sbin/nologin -g nogroup halt && \
+    usermod -s /sbin/nologin -g nogroup operator && \
     apk del shadow
 
 RUN apk update && \
