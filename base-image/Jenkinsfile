@@ -1,20 +1,17 @@
 pipeline {
-    agent any
-
-    parameters {
-        string(name: 'TAG_NAME', defaultValue: '', description: '')
+  agent {
+    baseubuntu {
+      label 'baseubuntu'
     }
+  }
 
-    environment {
-        REGISTRY = 'docker.io'
-        DOCKERHUB_NAMESPACE = 'docker_username' // change me
-    }
-
-    stages {
-        stage('build & push') {
-            steps {
-                sh 'cd base-image && make build-alpine-edge'
-            }
+  stages {
+    stage('baseubuntu hello') {
+      steps {
+        container('baseubuntu') {
+          sh 'cd base-image && make build-alpine-edge'
         }
-    }
+      }
+     }
+   }
 }
