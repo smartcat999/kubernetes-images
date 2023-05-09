@@ -1,0 +1,22 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'TAG_NAME', defaultValue: '', description: '')
+    }
+
+    environment {
+        REGISTRY = 'docker.io'
+        DOCKERHUB_NAMESPACE = 'docker_username' // change me
+    }
+
+    stages {
+        stage('build & push') {
+            steps {
+                container('maven') {
+                    sh 'make build-alpine-edge'
+                }
+            }
+        }
+    }
+}
