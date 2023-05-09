@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('build & push') {
             steps {
-                sh 'make build-alpine-edge'
+                sh 'cd base-image && make build-alpine-edge'
             }
         }
     }
