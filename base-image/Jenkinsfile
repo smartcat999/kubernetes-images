@@ -13,9 +13,7 @@ pipeline {
     stages {
         stage('build & push') {
             steps {
-                container('maven') {
-                    sh 'make build-alpine-edge'
-                }
+                sh 'make build-alpine-edge'
             }
         }
     }
