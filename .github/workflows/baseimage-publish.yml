@@ -60,4 +60,35 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push Docker image -- nodejs
+        id: build-and-push-nodejs
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        with:
+          context: ./base-image/distroless/nodejs20/
+          platforms: linux/arm64, linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: 2030047311/nodejs20:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
+      - name: Build and push Docker image -- base-debian12
+        id: build-and-push-base-debian12
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        with:
+          context: ./base-image/distroless/base-debian12/
+          platforms: linux/arm64, linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: 2030047311/base-debian12:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Docker image -- static-debian12
+        id: build-and-push-static-debian12
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+        with:
+          context: ./base-image/distroless/static-debian12/
+          platforms: linux/arm64, linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: 2030047311/static-debian12:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
