@@ -60,7 +60,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push Docker image -- nodejs
+      - name: Build and push Docker image -- nodejs20
         id: build-and-push-nodejs
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
@@ -102,13 +102,13 @@ jobs:
           output: 'trivy-results-alpine.sarif'
           severity: 'CRITICAL,HIGH'
       
-      - name: Run Trivy vulnerability scanner -- nodejs
+      - name: Run Trivy vulnerability scanner -- nodejs20
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         with:
-          image-ref: 'docker.io/2030047311/nodejs:latest'
+          image-ref: 'docker.io/2030047311/nodejs20:latest'
           format: 'template'
           template: '@/contrib/sarif.tpl'
-          output: 'trivy-results-nodejs.sarif'
+          output: 'trivy-results-nodejs20.sarif'
           severity: 'CRITICAL,HIGH'
     
       - name: Run Trivy vulnerability scanner -- base-debian12
