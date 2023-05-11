@@ -28,6 +28,8 @@ jobs:
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
+      security-events: write
+
 
     steps:
       - name: Checkout repository
@@ -99,13 +101,13 @@ jobs:
           image-ref: 'docker.io/2030047311/alpine:latest'
           format: 'template'
           template: '@/contrib/sarif.tpl'
-          output: 'trivy-results.sarif'
+          output: 'trivy-results-alpine.sarif'
           severity: 'CRITICAL,HIGH'
           
       - name: Upload Trivy scan results to GitHub Security tab -- alpine
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'trivy-results-alpine.sarif'
 
       - name: Run Trivy vulnerability scanner -- nodejs20
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
