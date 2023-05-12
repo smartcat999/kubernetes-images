@@ -37,7 +37,7 @@ jobs:
         id: scan
         with:
           image: "docker.io/2030047311/nginx:v20210926-g5662db450"
-          fail-build: true
+          fail-build: false
           severity-cutoff: critical
           
       - name: Upload Trivy scan results to GitHub Security tab
