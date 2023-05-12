@@ -1,0 +1,21 @@
+name: Anchore Syft SBOM scan
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  Anchore-Build-Scan:
+    permissions:
+      contents: write # required to upload to the Dependency submission API
+    runs-on: ubuntu-latest
+    steps:
+    - name: Scan the image and upload dependency results
+      uses: anchore/sbom-action@bb716408e75840bbb01e839347cd213767269d4a
+      with:
+        image: "docker.io/2030047311/nginx:v20210926-g5662db450"
+        artifact-name: image.spdx.json
+        dependency-snapshot: true
