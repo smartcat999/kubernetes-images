@@ -25,7 +25,7 @@ if [[ ! -f "v2ray.zip" ]]; then
   exit
 fi
 
-unzip v2ray.zip -o /root/v2ray/
+unzip v2ray.zip -d /root/v2ray/
 
 # 2. COPY file to /usr/local/bin/
 cp /root/v2ray /usr/local/bin/
