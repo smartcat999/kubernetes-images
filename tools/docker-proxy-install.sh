@@ -117,6 +117,8 @@ EOF
 
 systemctl restart docker
 
+docker run --privileged --rm tonistiigi/binfmt --install all
+
 docker buildx create --name my-builder-proxy --bootstrap --use \
   --driver-opt env.http_proxy=socks5://${LISTEN_ADDRESS}:${LISTEN_PORT} \
   --driver-opt env.https_proxy=socks5://${LISTEN_ADDRESS}:${LISTEN_PORT} \
