@@ -53,7 +53,7 @@ jobs:
         uses: anchore/scan-action@d5aa5b6cb9414b0c7771438046ff5bcfa2854ed7
         id: scan
         with:
-          image: ${{ env.REGISTRY }}ks-apiserver:v3.4.0
+          image: ${{ env.REGISTRY }}ks-controller-manager:v3.4.0
           fail-build: false
           severity-cutoff: critical
 
@@ -63,7 +63,7 @@ jobs:
           sarif_file: ${{ steps.scan.outputs.sarif }}
 
 
-  trivy-ks-apiserver-image-scan:
+  trivy-ks-image-scan:
 
     runs-on: ubuntu-latest
     environment: dev
@@ -81,6 +81,7 @@ jobs:
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+          category: 'trivy-ks-apiserver'
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
@@ -90,11 +91,12 @@ jobs:
       - name: Run the Trivy scan action
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         with:
-          image-ref: ${{ env.REGISTRY }}ks-apiserver:v3.4.0
+          image-ref: ${{ env.REGISTRY }}ks-controller-manager:v3.4.0
           format: 'template'
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+          category: 'trivy-ks-controller-manager'
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
