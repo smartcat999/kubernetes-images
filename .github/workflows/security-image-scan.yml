@@ -18,7 +18,7 @@ env:
   TAG: v3.4.0
 
 jobs:
-  grype-ks-image-scan:
+  Grype-Image-Scan:
 
     runs-on: ubuntu-latest
     environment: dev
@@ -57,7 +57,7 @@ jobs:
           category: 'grype-ks-controller-manager'
 
 
-  trivy-ks-image-scan:
+  Trivy-Image-Scan:
 
     runs-on: ubuntu-latest
     environment: dev
@@ -96,3 +96,23 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
           category: 'trivy-ks-controller-manager'
+
+
+  Anchore-Build-Scan:
+    permissions:
+      contents: write # required to upload to the Dependency submission API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan ks-apiserver image dependency
+        uses: anchore/sbom-action@bb716408e75840bbb01e839347cd213767269d4a
+        with:
+          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
+          artifact-name: image.spdx.json
+          dependency-snapshot: true
+
+      - name: Scan ks-controller-manager image dependency
+        uses: anchore/sbom-action@bb716408e75840bbb01e839347cd213767269d4a
+        with:
+          image: ${{ env.REGISTRY }}ks-controller-manager:${{ env.TAG }}
+          artifact-name: image.spdx.json
+          dependency-snapshot: true
