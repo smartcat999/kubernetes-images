@@ -116,3 +116,36 @@ jobs:
           image: ${{ env.REGISTRY }}ks-controller-manager:${{ env.TAG }}
           artifact-name: ks-controller-manager-image.spdx.json
           dependency-snapshot: true
+
+  Image-Security-check:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Image tools check
+        uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
+        id: image-check
+        with:
+          image-check: tools
+          image: node:latest
+          output: tools.txt
+
+      - name: Archive image check results
+        uses: actions/upload-artifact@v3
+        with:
+          name: tools-image-check-result
+          path: tools.txt
+
+      - name: Image permission check
+        uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
+        id: image-check-permission
+        with:
+          image-check: permission
+          image: node:latest
+          output: permission.txt
+
+      - name: Archive image check results
+        uses: actions/upload-artifact@v3
+        with:
+          name: permission-image-check-result
+          path: permission.txt
