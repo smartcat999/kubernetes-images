@@ -124,7 +124,7 @@ jobs:
     steps:
       - name: Image tools check
         uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
-        id: ks-apiserver-image-check
+        id: ks-apiserver-tools
         with:
           image-check: tools
           image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
@@ -138,7 +138,7 @@ jobs:
 
       - name: Image permission check
         uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
-        id: image-check-permission
+        id: ks-apiserver-permission
         with:
           image-check: permission
           image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
@@ -152,7 +152,7 @@ jobs:
 
       - name: Image tools check
         uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
-        id: ks-controller-manager-image-check
+        id: ks-controller-manager-tools
         with:
           image-check: tools
           image: ${{ env.REGISTRY }}ks-controller-manager:${{ env.TAG }}
@@ -166,7 +166,7 @@ jobs:
 
       - name: Image permission check
         uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
-        id: image-check-permission
+        id: ks-controller-manager-permission
         with:
           image-check: permission
           image: ${{ env.REGISTRY }}ks-controller-manager:${{ env.TAG }}
