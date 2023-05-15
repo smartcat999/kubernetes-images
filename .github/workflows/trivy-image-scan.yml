@@ -23,9 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
     permissions:
-      contents: read
-      packages: write
-      id-token: write
+#      contents: read
+#      packages: write
+#      id-token: write
       security-events: write
 
 
