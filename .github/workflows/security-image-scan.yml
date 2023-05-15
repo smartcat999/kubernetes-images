@@ -124,16 +124,16 @@ jobs:
     steps:
       - name: Image tools check
         uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
-        id: image-check
+        id: ks-apiserver-image-check
         with:
           image-check: tools
-          image: node:latest
+          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
           output: tools.txt
 
       - name: Archive image check results
         uses: actions/upload-artifact@v3
         with:
-          name: tools-image-check-result
+          name: ks-apiserver-tools-result
           path: tools.txt
 
       - name: Image permission check
@@ -141,11 +141,39 @@ jobs:
         id: image-check-permission
         with:
           image-check: permission
-          image: node:latest
+          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
           output: permission.txt
 
       - name: Archive image check results
         uses: actions/upload-artifact@v3
         with:
-          name: permission-image-check-result
+          name: ks-apiserver-permission-result
+          path: permission.txt
+
+      - name: Image tools check
+        uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
+        id: ks-controller-manager-image-check
+        with:
+          image-check: tools
+          image: ${{ env.REGISTRY }}ks-controller-manager:${{ env.TAG }}
+          output: tools.txt
+
+      - name: Archive image check results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ks-controller-manager-tools-result
+          path: tools.txt
+
+      - name: Image permission check
+        uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
+        id: image-check-permission
+        with:
+          image-check: permission
+          image: ${{ env.REGISTRY }}ks-controller-manager:${{ env.TAG }}
+          output: permission.txt
+
+      - name: Archive image check results
+        uses: actions/upload-artifact@v3
+        with:
+          name: ks-controller-manager-permission-result
           path: permission.txt
