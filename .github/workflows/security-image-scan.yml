@@ -107,12 +107,12 @@ jobs:
         uses: anchore/sbom-action@bb716408e75840bbb01e839347cd213767269d4a
         with:
           image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
-          artifact-name: image.spdx.json
+          artifact-name: ks-apiserver-image.spdx.json
           dependency-snapshot: true
 
       - name: Scan ks-controller-manager image dependency
         uses: anchore/sbom-action@bb716408e75840bbb01e839347cd213767269d4a
         with:
           image: ${{ env.REGISTRY }}ks-controller-manager:${{ env.TAG }}
-          artifact-name: image.spdx.json
+          artifact-name: ks-controller-manager-image.spdx.json
           dependency-snapshot: true
