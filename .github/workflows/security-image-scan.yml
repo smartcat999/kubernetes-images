@@ -130,8 +130,7 @@ jobs:
         with:
           image-check: ""
 #          image-check: "tools"
-          image: ""
-#          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
+          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
           output: tools.txt
 
       - name: File test
