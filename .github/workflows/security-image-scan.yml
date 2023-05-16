@@ -125,11 +125,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Image tools check
-        uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
+        uses: .github/workflows/security-action/ # Uses an action in the root directory
         id: ks-apiserver-tools
         with:
           image-check: tools
-          image: node:latest
+          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
           output: tools.txt
 
       - name: Archive image check results

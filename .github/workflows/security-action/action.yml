@@ -1,0 +1,30 @@
+# action.yml
+name: 'Image Check'
+description: 'Image Security Check'
+inputs:
+  image-check:  # id of input
+    description: 'tools/permission'
+    required: true
+    default: 'tools'
+  image:
+    description: 'image need check'
+    required: true
+  output:
+    description: 'image check result'
+    required: true
+    default: 'result.txt'
+outputs:
+  result: # image matched of output
+    description: 'The image matched'
+    value:  ${{ steps.image-check.outputs.result }}
+runs:
+  using: 'composite'
+  steps:
+    - run: docker pull ${{ inputs.image }}
+      shell: bash
+    - id: image-check
+      run: sudo ${{ github.action_path }}/image-check.sh ${{ inputs.image-check }} ${{ inputs.image }} && echo "result='"$(cat ${{ inputs.output }})"'" >> $GITHUB_OUTPUT
+      shell: bash
+    - id: image-check-result
+      run: cat ${{ inputs.output }}
+      shell: bash
