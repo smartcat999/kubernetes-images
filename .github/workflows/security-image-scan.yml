@@ -131,7 +131,7 @@ jobs:
         id: ks-apiserver-tools
         with:
           image-check: tools
-          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
+          image: node:latest
           output: tools.txt
 
       - name: Archive image check results
