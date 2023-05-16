@@ -1,4 +1,4 @@
-name: security-image-scan
+name: SecurityImageScan
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -124,6 +124,9 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Image tools check
         uses: .github/workflows/security-action/ # Uses an action in the root directory
         id: ks-apiserver-tools
