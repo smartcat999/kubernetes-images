@@ -16,7 +16,7 @@ env:
   # Use docker.io for Docker Hub if empty
 #  REGISTRY: registry.cn-beijing.aliyuncs.com/kse/
   REGISTRY: 2030047311/
-#  TAG: v3.4.0
+#  TAG: v3.4.0 
   TAG: v3.3.2-20230428
   ACTIONS_RUNNER_DEBUG: true
   ACTIONS_STEP_DEBUG: true
