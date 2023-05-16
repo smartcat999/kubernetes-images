@@ -179,3 +179,14 @@ jobs:
         with:
           name: ks-controller-manager-permission-result
           path: permission.txt
+
+  Local-Action-check:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Image tools check
+        uses: ./action/ # Uses an action in the root directory
+        id: local-action-test
+        with:
+          image: node:latest

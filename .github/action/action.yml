@@ -1,0 +1,16 @@
+# action.yml
+name: 'Local Action'
+description: 'Greet someone and record the time'
+inputs:
+  image:
+    description: 'image need check'
+    required: true
+outputs:
+  result: # image matched of output
+    description: 'The image matched'
+    value:  'test result'
+runs:
+  using: 'composite'
+  steps:
+    - run: docker pull ${{ inputs.image }}
+      shell: bash
