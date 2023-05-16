@@ -128,8 +128,10 @@ jobs:
         uses: smartcat999/docker-image-action@v1 # Uses an action in the root directory
         id: ks-apiserver-tools
         with:
-          image-check: tools
-          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
+          image-check: ""
+#          image-check: "tools"
+          image: ""
+#          image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
           output: tools.txt
 
       - name: File test
