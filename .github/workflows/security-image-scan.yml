@@ -14,8 +14,10 @@ on:
 
 env:
   # Use docker.io for Docker Hub if empty
-  REGISTRY: registry.cn-beijing.aliyuncs.com/kse/
-  TAG: v3.4.0
+#  REGISTRY: registry.cn-beijing.aliyuncs.com/kse/
+  REGISTRY: docker.io/2030047311/
+#  TAG: v3.4.0
+  TAG: v3.3.2-20230428
 
 jobs:
   Grype-Image-Scan:
