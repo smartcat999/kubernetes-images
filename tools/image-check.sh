@@ -53,6 +53,7 @@ function utils {
       fi
     done
   elif [ "$CMD" = "tools" ]; then
+    output="${3:-tools.txt}"
     # tools=("tcpdump" "sniffer" "wireshark" "Netcat" "gdb" "strace" "readelf" "cpp" "gcc" "dexdump" "mirror" "JDK" "netcat")
     tools=("tcpdump" "sniffer" "wireshark" "Netcat" "strace" "readelf" "Nmap" "gdb" "cpp" "gcc" "jdk" "javac" "make" "binutils" "flex" "glibc-devel" "gcc-c++" "Id" "lex" "rpcgen" "objdump" "eu-readelf" "eu-objdump" "dexdump" "mirror" "lua" "Perl")
     echo "tool | Id | RepoTags"
@@ -65,14 +66,14 @@ function utils {
         continue
       fi
 
-      docker image ls | awk '{if (NR>1){print $3}}' |
+      result=$(docker image ls | awk '{if (NR>1){print $3}}' |
         xargs docker inspect --format '{{.Id}}, {{index .RepoTags 0}}, {{.GraphDriver.Data}}' 2>/dev/null |
-        grep -E $(echo $overlays | sed 's/ /|/g') | awk -F, '{printf("%s %s %s\n", "'$tool'", $1, $2)}'
-      # shellcheck disable=SC2181
-      if [ $? != 0 ]; then
-        continue
+        grep -E $(echo $overlays | sed 's/ /|/g') | awk -F, '{printf("%s %s %s\n", "'$tool'", $1, $2)}' 2>/dev/null)
+      if [ "$result" != "" ]; then
+        echo "$result" >>$output
       fi
     done
+    echo "output: $output"
   elif [ "$CMD" = "env" ]; then
     containers=$(docker ps | awk 'NR!=1 {print $1}')
     # shellcheck disable=SC2068
@@ -96,6 +97,7 @@ function utils {
       fi
     done
   elif [ "$CMD" = "permission" ]; then
+    output="${3:-permission.txt}"
     hostname=$(sh -c hostname)
     images=$(docker image ls | awk 'NR!=1 {print $3}')
     echo "hostname | image | permission | file"
@@ -108,10 +110,14 @@ function utils {
         xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null |
         xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s %s\n", "'$hostname'", "'$image'", "'$repo_tags'", $1, $9)}}'
       # shellcheck disable=SC2086
-      docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' |
+      result=$(docker inspect "${image}" -f {{.GraphDriver.Data.LowerDir}} | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' |
         xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 600 -name "*.conf" 2>/dev/null |
-        xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s %s\n", "'$hostname'", "'$image'", "'$repo_tags'", $1, $9)}}'
+        xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s %s\n", "'$hostname'", "'$image'", "'$repo_tags'", $1, $9)}}' 2>/dev/null)
+      if [ "$result" != "" ]; then
+        echo "$result" >>$output
+      fi
     done
+    echo "output: $output"
   elif [ "$CMD" = "token" ]; then
     token_dirs=$(find / -name "kube-api-access-*" 2>/dev/null)
     hostname=$(sh -c hostname)
@@ -187,4 +193,4 @@ function utils {
   fi
 }
 
-utils $1 $2
+utils $1 $2 $3
