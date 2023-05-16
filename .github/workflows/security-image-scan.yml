@@ -132,6 +132,10 @@ jobs:
           image: ${{ env.REGISTRY }}ks-apiserver:${{ env.TAG }}
           output: tools.txt
 
+      - name: File test
+        run: ls -l ${{ github.action_path }}
+        shell: bashe
+
       - name: Archive image check results
         uses: actions/upload-artifact@v3
         with:
