@@ -185,6 +185,8 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Image tools check
         uses: ./.github/local-action/ # Uses an action in the root directory
         id: local-action-test
