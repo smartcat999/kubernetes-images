@@ -186,7 +186,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Image tools check
-        uses: ./action/ # Uses an action in the root directory
+        uses: ./.github/local-action/ # Uses an action in the root directory
         id: local-action-test
         with:
           image: node:latest
