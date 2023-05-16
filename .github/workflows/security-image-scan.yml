@@ -128,7 +128,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Image tools check
-        uses: .github/workflows/security-action/ # Uses an action in the root directory
+        uses: ./.github/workflows/security-action/ # Uses an action in the root directory
         id: ks-apiserver-tools
         with:
           image-check: tools
