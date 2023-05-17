@@ -9,12 +9,12 @@ on:
   workflow_dispatch:
     inputs:
       registry:
-        description: 'Image registry'
+        description: 'Image Registry'
         required: true
         default: 'registry.cn-beijing.aliyuncs.com/kse/'
         type: String
       tag:
-        description: 'Image release tag'
+        description: 'Image Release Tag'
         required: true
         default: 'latest'
         type: string
