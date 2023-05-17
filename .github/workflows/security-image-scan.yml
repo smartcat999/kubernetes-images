@@ -6,18 +6,23 @@ name: SecurityImageScan
 # documentation.
 
 on:
-  push:
-    branches:
-      - '*'
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: 'Image registry'
+        required: true
+        default: 'registry.cn-beijing.aliyuncs.com/kse/'
+        type: String
+      tag:
+        description: 'Image release tag'
+        required: true
+        default: 'latest'
+        type: string
 
 env:
   # Use docker.io for Docker Hub if empty
-  REGISTRY: registry.cn-beijing.aliyuncs.com/kse/
-  TAG: v3.4.0
-  ACTIONS_RUNNER_DEBUG: true
-  ACTIONS_STEP_DEBUG: true
+  REGISTRY: ${{ inputs.registry }}
+  TAG: ${{ inputs.tag }}
 
 jobs:
   GrypeImageScan:
