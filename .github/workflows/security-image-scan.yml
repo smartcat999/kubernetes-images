@@ -12,7 +12,7 @@ on:
         description: 'Image Registry'
         required: true
         default: 'registry.cn-beijing.aliyuncs.com/kse/'
-        type: String
+        type: string
       tag:
         description: 'Image Release Tag'
         required: true
