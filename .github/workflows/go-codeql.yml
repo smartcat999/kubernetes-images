@@ -1,4 +1,4 @@
-name: GoCodeQlScan
+name: "Code Scanning - Action"
 
 on:
   workflow_dispatch:
