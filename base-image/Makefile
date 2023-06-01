@@ -13,5 +13,8 @@ build-nodejs20-debian12:
 build-base-debian12:
 	docker buildx build -f ./distroless/base-debian12/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/base-debian12:${EDGE_TAG} ./distroless/base-debian12/
 
+build-base-nossl-debian12:
+	docker buildx build -f ./distroless/base-nossl-debian12/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/base-nossl-debian12:${EDGE_TAG} ./distroless/base-nossl-debian12/
+
 build-static-debian12:
 	docker buildx build -f ./distroless/static-debian12/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/static-debian12:${EDGE_TAG} ./distroless/static-debian12/
