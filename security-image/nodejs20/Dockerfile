@@ -7,7 +7,7 @@ ENV NODE_BRANCH v20.x
 WORKDIR /tmp
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
-    && apk add git openssh perl perl-text-template \
+    && apk add git openssh perl perl-text-template nasm \
     && apk add --no-cache libstdc++ \
     && apk add --no-cache --virtual .build-deps curl \
     && git config --global user.email "smartcat999@example.com" \
