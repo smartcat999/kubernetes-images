@@ -1,6 +1,67 @@
+FROM alpine:edge as openssl
+
+ENV OPENSSL_VERSION openssl-3.1.0+quic
+ENV NODE_VERSION 20.2.0
+ENV NODE_BRANCH v20.x
+
+WORKDIR /tmp
+
+RUN apk add git openssl
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+    && addgroup -g 1000 node \
+    && adduser -u 1000 -G node -s /bin/sh -D node \
+    && apk add --no-cache \
+        libstdc++ \
+    && apk add --no-cache --virtual .build-deps \
+        curl \
+    && ARCH= && alpineArch="$(apk --print-arch)" \
+      && case "${alpineArch##*-}" in \
+        x86_64) \
+          ARCH='x64' \
+          CHECKSUM="8a637ef2fbac8c50b08129b8cbd80a8175a3d6c8b06615de100170d795af8668" \
+          ;; \
+        *) ;; \
+      esac \
+  && if [ -n "${CHECKSUM}" ]; then \
+    echo "pass"; \
+  else \
+    echo "Building from source" \
+    # backup build
+    && apk add --no-cache --virtual .build-deps-full \
+        binutils-gold \
+        g++ \
+        gcc \
+        gnupg \
+        libgcc \
+        linux-headers \
+        make \
+        python3 \
+    && git clone https://github.com/nodejs/node.git \
+    && git checkout ${CHECKSUM} \
+  fi
+
+RUN git clone https://github.com/quictls/openssl  \
+    && cd openssl  \
+    && git checkout $OPENSSL_VERSION \
+    && cd ../node/deps/openssl \
+    && rm -rf openssl \
+    && cp -R ../../../openssl openssl \
+    && rm -rf openssl/.git* openssl/.travis* \
+    && git add --all openssl \
+    && git commit openssl -m "deps: upgrade openssl sources to quictls/${OPENSSL_VERSION}" \
+
+RUN make -C deps/openssl/config clean \
+    && make -C deps/openssl/config \
+    && git add deps/openssl/config/archs \
+    && git add deps/openssl/openssl \
+    && git commit -m "deps: update archs files for quictls/${OPENSSL_VERSION}"
+
+
 FROM alpine:edge as base
 
-ENV NODE_VERSION 20.0.0
+COPY --from=openssl /tmp/node /tmp/node
+
+ENV NODE_VERSION 20.2.0
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
     && addgroup -g 1000 node \
@@ -51,12 +112,12 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 #      gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" || \
 #      gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" ; \
 #    done \
-    && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION.tar.xz" \
+#    && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION.tar.xz" \
 #    && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
 #    && gpg --batch --decrypt --output SHASUMS256.txt SHASUMS256.txt.asc \
 #    && grep " node-v$NODE_VERSION.tar.xz\$" SHASUMS256.txt | sha256sum -c - \
-    && tar -xf "node-v$NODE_VERSION.tar.xz" \
-    && cd "node-v$NODE_VERSION" \
+#    && tar -xf "node-v$NODE_VERSION.tar.xz" \
+#    && cd "node-v$NODE_VERSION" \
     && ./configure \
     && make -j$(getconf _NPROCESSORS_ONLN) V= \
     && make install \
@@ -70,7 +131,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
   && apk del .build-deps \
   # smoke tests
   && node --version \
-  && npm --version
+  && npm --version \
+  && rm -rf /tmp/node
 
 ENV YARN_VERSION 1.22.19
 
