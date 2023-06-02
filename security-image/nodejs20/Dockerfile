@@ -6,15 +6,12 @@ ENV NODE_BRANCH v20.x
 
 WORKDIR /tmp
 
-RUN apk add git openssh perl perl-text-template
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
-    && addgroup -g 1000 node \
-    && adduser -u 1000 -G node -s /bin/sh -D node \
-    && apk add --no-cache \
-        libstdc++ \
-    && apk add --no-cache --virtual .build-deps \
-        curl \
-    && ARCH= && alpineArch="$(apk --print-arch)" \
+    && apk add git openssh perl perl-text-template \
+    && apk add --no-cache libstdc++ \
+    && apk add --no-cache --virtual .build-deps curl
+
+RUN ARCH= && alpineArch="$(apk --print-arch)" \
       && case "${alpineArch##*-}" in \
         x86_64) \
           ARCH='x64' \
