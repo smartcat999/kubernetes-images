@@ -85,7 +85,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     curl -fsSLO --compressed "https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz"; \
     echo "$CHECKSUM  node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" | sha256sum -c - \
       && tar -xJf "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
-      && ln -s /usr/local/bin/node /usr/local/bin/nodejs; \
+      && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
+      && rm -f "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz"; \
   else \
     echo "Building from source" \
     # backup build
@@ -125,12 +126,12 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && make -j$(getconf _NPROCESSORS_ONLN) V= \
     && make install \
     && apk del .build-deps-full \
-    && cd .. \
-    && rm -Rf "node-v$NODE_VERSION" \
-    && rm "node-v$NODE_VERSION.tar.xz"; \
+    && cd ..; \
+    #&& rm -rf "node-v$NODE_VERSION" \
+    #&& rm "node-v$NODE_VERSION.tar.xz"; \
 #    && rm "node-v$NODE_VERSION.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt; \
   fi \
-  && rm -f "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" \
+  #&& rm -f "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" \
   && apk del .build-deps \
   # smoke tests
   && node --version \
