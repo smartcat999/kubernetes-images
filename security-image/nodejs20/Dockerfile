@@ -9,7 +9,9 @@ WORKDIR /tmp
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
     && apk add git openssh perl perl-text-template \
     && apk add --no-cache libstdc++ \
-    && apk add --no-cache --virtual .build-deps curl
+    && apk add --no-cache --virtual .build-deps curl \
+    && git config --global user.email "smartcat999@example.com" \
+    && git config --global user.name "smartcat999"
 
 RUN ARCH= && alpineArch="$(apk --print-arch)" \
       && case "${alpineArch##*-}" in \
