@@ -184,7 +184,7 @@ CMD [ "node" ]
 
 FROM scratch
 
-ENV NODE_VERSION 20.0.0
+ENV NODE_VERSION 20.2.0
 
 COPY --from=base / /
 
