@@ -38,7 +38,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
         python3 \
     && git clone https://github.com/nodejs/node.git \
     && git checkout ${CHECKSUM} \
-  fi
+  fi \
+  && apk del .build-deps
 
 RUN git clone https://github.com/quictls/openssl  \
     && cd openssl  \
