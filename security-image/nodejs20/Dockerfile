@@ -34,7 +34,9 @@ RUN ARCH= && alpineArch="$(apk --print-arch)" \
         make \
         python3 \
     && git clone https://github.com/nodejs/node.git \
-    && git checkout ${NODE_BRANCH}; \
+    && cd node  \
+    && git checkout ${NODE_BRANCH} \
+    && cd ..; \
   fi
 
 RUN git clone https://github.com/quictls/openssl  \
