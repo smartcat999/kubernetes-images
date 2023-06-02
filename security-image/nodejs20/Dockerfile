@@ -48,7 +48,7 @@ RUN git clone https://github.com/quictls/openssl  \
     && cp -R ../../../openssl openssl \
     && rm -rf openssl/.git* openssl/.travis* \
     && git add --all openssl \
-    && git commit openssl -m "deps: upgrade openssl sources to quictls/${OPENSSL_VERSION}" \
+    && git commit openssl -m "deps: upgrade openssl sources to quictls/${OPENSSL_VERSION}"
 
 RUN make -C deps/openssl/config clean \
     && make -C deps/openssl/config \
