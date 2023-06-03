@@ -10,3 +10,12 @@ build-kube-proxy:
 
 build-nodejs20:
 	docker buildx build -f ./nodejs20/Dockerfile --platform linux/arm64 --push -t ${REPO}/nodejs20:${EDGE_TAG} ./nodejs20/
+
+build-nodejs20-amd64:
+	docker buildx build -f ./nodejs20/Dockerfile_common --platform linux/amd64 --push -t ${REPO}/nodejs20:${EDGE_TAG} ./nodejs20/
+
+build-nodejs20-arm64:
+	docker buildx build -f ./nodejs20/Dockerfile_common --platform linux/arm64 --push -t ${REPO}/nodejs20:${EDGE_TAG} ./nodejs20/
+
+build-nodejs20-multi-platform:
+	docker buildx build -f ./nodejs20/Dockerfile_common --platform linux/amd64,linux/arm64 --push -t ${REPO}/nodejs20:${EDGE_TAG} ./nodejs20/
