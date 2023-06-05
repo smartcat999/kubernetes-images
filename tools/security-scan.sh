@@ -5,7 +5,7 @@
 # EOF
 # 或 注意用户名区别
 # crontab -e
-# 添加 * * * * * /bin/bash /opt/tasks/security-scan.sh
+# 添加 */10 * * * * /bin/bash /opt/tasks/security-scan.sh
 
 function check-modify-permission() {
   dir=$1
