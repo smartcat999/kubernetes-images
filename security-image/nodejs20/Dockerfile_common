@@ -7,6 +7,7 @@ ENV NODE_BRANCH v20.x
 WORKDIR /tmp
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+    && apk update && apk upgrade \
     && apk add git openssh perl perl-text-template nasm \
     && apk add --no-cache libstdc++ \
     && apk add --no-cache --virtual .build-deps curl \
@@ -55,6 +56,7 @@ COPY --from=openssl /tmp/node /tmp/node
 ENV NODE_VERSION 20.2.0
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+    && apk update && apk upgrade \
 #    && addgroup -g 1000 node \
 #    && adduser -u 1000 -G node -s /bin/sh -D node \
     && apk add --no-cache \
