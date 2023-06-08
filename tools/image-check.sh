@@ -283,7 +283,7 @@ function scan-openssl() {
 function scan-noowner() {
   dir=${1:-/}
   # shellcheck disable=SC2038
-  find $dir -xdev \( -nouser -o -nogroup \) \( ! -path "/proc" -o ! -path "/sys" \) -type f -print | xargs ls -l
+  find $dir -xdev \( -nouser -o -nogroup \) \( ! -path "/proc" -o ! -path "/sys" \) -type f -print | xargs -I {} ls -l {}
 }
 
 function utils {
