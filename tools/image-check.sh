@@ -25,7 +25,6 @@
 # 不传path默认扫描 / 目录下的文件，不扫描 /proc 和 /sys
 # ./image-check.sh noowner ${path}
 
-
 #set -x
 RUNTIME=${RUNTIME:-isula}
 DOCKER_IMAGE_LS="docker image ls"
@@ -113,12 +112,18 @@ function scan-tools() {
       for image_file in ${image_files[@]}; do
         image_dir=$root_dir/$image_file
         # shellcheck disable=SC2002
-        image_name=$(cat "${image_dir}/images.json" | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
+        image_json=$(cat "${image_dir}/images.json")
+        image_id=$(echo $image_json| grep -Eo '"id": [^,]+' | awk '{print $2}' | sed 's/"//g')
+        image_name=$(echo ${image_json} | grep -Eo '"names":[^,]+' | sed 's/ //g' | awk -F '"' '{print $4}')
         image_layer_file=$(find $image_dir | grep "=")
         layer_hashs=$(cat $image_layer_file | grep -Eo '"(sha256:[a-f0-9]+)"' | grep -E "'"${layer_egrep}"'")
         if [ "$layer_hashs" != "" ]; then
           for layer_hash in ${layer_hashs[@]}; do
-            echo "$tool $image_name /var/lib/isulad/storage/overlay/$(echo $layer_hash | sed 's/"//g' | awk -F: '{print $2}')/diff/"
+            if [ "$image_name" != "" ]; then
+              echo "$tool $image_name /var/lib/isulad/storage/overlay/$(echo $layer_hash | sed 's/"//g' | awk -F: '{print $2}')/diff/"
+            else
+              echo "$tool $image_id /var/lib/isulad/storage/overlay/$(echo $layer_hash | sed 's/"//g' | awk -F: '{print $2}')/diff/"
+            fi
           done
         fi
       done
@@ -245,13 +250,13 @@ function scan-openssl() {
       fi
       mount_files=$(find "$mount_dir" -type f -name "*.key")
       for mount_file in ${mount_files[@]}; do
-#        is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$mount_file")
+        #        is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$mount_file")
         is_private_key=$(grep -c "PRIVATE KEY" "$mount_file")
         is_encrypted=$(grep -c "ENCRYPTED" "$mount_file")
-        if [[ $is_private_key = '2' ]] && [[ $is_encrypted = '1' ]]; then
-          continue
-        else
-          echo "$hostname $image $repo_tags $container $mount_file"
+        if [[ $is_private_key = '2' ]]; then
+          if [[ "$is_encrypted" = '0' ]]; then
+            echo "$hostname $image $repo_tags $container $mount_file"
+          fi
         fi
       done
     done
@@ -261,10 +266,10 @@ function scan-openssl() {
       for upper_file in ${upper_files[@]}; do
         is_private_key=$(grep -c "PRIVATE KEY" "$mount_file")
         is_encrypted=$(grep -c "ENCRYPTED" "$mount_file")
-        if [[ $is_private_key = '2' ]] && [[ $is_encrypted = '1' ]]; then
-          continue
-        else
-          echo "$hostname $image $repo_tags $container $upper_file"
+        if [[ $is_private_key = '2' ]]; then
+          if [[ "$is_encrypted" = '0' ]]; then
+            echo "$hostname $image $repo_tags $container $upper_file"
+          fi
         fi
       done
     fi
@@ -273,10 +278,10 @@ function scan-openssl() {
       for lower_file in ${lower_files[@]}; do
         is_private_key=$(grep -c "PRIVATE KEY" "$mount_file")
         is_encrypted=$(grep -c "ENCRYPTED" "$mount_file")
-        if [[ $is_private_key = '2' ]] && [[ $is_encrypted = '1' ]]; then
-          continue
-        else
-          echo "$hostname $image $repo_tags $container $lower_file"
+        if [[ $is_private_key = '2' ]]; then
+          if [[ "$is_encrypted" = '0' ]]; then
+            echo "$hostname $image $repo_tags $container $lower_file"
+          fi
         fi
       done
     fi
