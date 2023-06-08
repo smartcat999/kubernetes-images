@@ -243,37 +243,40 @@ function scan-openssl() {
       if [[ $mount_dir = "/proc" ]] || [[ $mount_dir = "/sys" ]] || [[ $mount_dir = "/" ]]; then
         continue
       fi
-      mount_files=$(find "$mount_dir" -name "*.key")
+      mount_files=$(find "$mount_dir" -type f -name "*.key")
       for mount_file in ${mount_files[@]}; do
 #        is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$mount_file")
-        is_not_encrypted=$(grep -c "BEGIN PRIVATE KEY" "$mount_file")
-        if [[ $is_not_encrypted = '1' ]]; then
-          echo "$hostname $image $repo_tags $container $upper_file"
-        else
+        is_private_key=$(grep -c "PRIVATE KEY" "$mount_file")
+        is_encrypted=$(grep -c "ENCRYPTED" "$mount_file")
+        if [[ $is_private_key = '2' ]] && [[ $is_encrypted = '1' ]]; then
           continue
+        else
+          echo "$hostname $image $repo_tags $container $mount_file"
         fi
       done
     done
 
-    upper_files=$($DOCKER_INSPECT -f {{.GraphDriver.Data.UpperDir}} "$container" | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key" 2>/dev/null)
+    upper_files=$($DOCKER_INSPECT -f {{.GraphDriver.Data.UpperDir}} "$container" | sed 's/:/\n/g' | xargs -I {} find {} -type f -name "*.key" 2>/dev/null)
     if [[ $upper_files != "" ]]; then
       for upper_file in ${upper_files[@]}; do
-        is_not_encrypted=$(grep -c "BEGIN PRIVATE KEY" "$upper_file")
-        if [[ $is_not_encrypted = '1' ]]; then
-          echo "$hostname $image $repo_tags $container $upper_file"
-        else
+        is_private_key=$(grep -c "PRIVATE KEY" "$mount_file")
+        is_encrypted=$(grep -c "ENCRYPTED" "$mount_file")
+        if [[ $is_private_key = '2' ]] && [[ $is_encrypted = '1' ]]; then
           continue
+        else
+          echo "$hostname $image $repo_tags $container $upper_file"
         fi
       done
     fi
-    lower_files=$($DOCKER_INSPECT -f {{.GraphDriver.Data.LowerDir}} "$container" | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key" 2>/dev/null)
+    lower_files=$($DOCKER_INSPECT -f {{.GraphDriver.Data.LowerDir}} "$container" | sed 's/:/\n/g' | xargs -I {} find {} -type f -name "*.key" 2>/dev/null)
     if [[ $lower_files != "" ]]; then
       for lower_file in ${lower_files[@]}; do
-        is_not_encrypted=$(grep -c "BEGIN PRIVATE KEY" "$lower_file")
-        if [[ $is_not_encrypted = '1' ]]; then
-          echo "$hostname $image $repo_tags $container $lower_file"
-        else
+        is_private_key=$(grep -c "PRIVATE KEY" "$mount_file")
+        is_encrypted=$(grep -c "ENCRYPTED" "$mount_file")
+        if [[ $is_private_key = '2' ]] && [[ $is_encrypted = '1' ]]; then
           continue
+        else
+          echo "$hostname $image $repo_tags $container $lower_file"
         fi
       done
     fi
