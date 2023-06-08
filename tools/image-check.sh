@@ -229,7 +229,7 @@ function scan-openssl() {
     image=$($DOCKER_PS | grep "$container" | awk '{print $2}')
     if [ "$RUNTIME" = "docker" ]; then
       repo_tags=$($DOCKER_INSPECT --format="{{index .RepoTags 0}}" $image 2>/dev/null)
-      mounts=$($DOCKER_INSPECT --format="{{range .Mounts}}{{printf "%s\n" .Source}}{{end}}" "$container")
+      mounts=$($DOCKER_INSPECT --format='{{range .Mounts}}{{printf "%s\n" .Source}}{{end}}' "$container")
     elif [ "$RUNTIME" = "isula" ]; then
       repo_tags=$($DOCKER_INSPECT --format="{{.image.repo_tags}}" $image | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
       mounts=$($DOCKER_INSPECT --format="{{.Mounts}}" $container | grep -Eo '("Source":[^,]*)' | awk -F: '{print $2}' | sed 's/ //g')
@@ -245,11 +245,12 @@ function scan-openssl() {
       fi
       mount_files=$(find "$mount_dir" -name "*.key")
       for mount_file in ${mount_files[@]}; do
-        is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$mount_file")
-        if [[ $is_encrypted = '1' ]]; then
-          continue
+#        is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$mount_file")
+        is_not_encrypted=$(grep -c "BEGIN PRIVATE KEY" "$mount_file")
+        if [[ $is_not_encrypted = '1' ]]; then
+          echo "$hostname $image $repo_tags $container $upper_file"
         else
-          echo "$hostname $image $repo_tags $container $mount_file"
+          continue
         fi
       done
     done
@@ -257,22 +258,22 @@ function scan-openssl() {
     upper_files=$($DOCKER_INSPECT -f {{.GraphDriver.Data.UpperDir}} "$container" | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key" 2>/dev/null)
     if [[ $upper_files != "" ]]; then
       for upper_file in ${upper_files[@]}; do
-        is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$upper_file")
-        if [[ $is_encrypted = '1' ]]; then
-          continue
-        else
+        is_not_encrypted=$(grep -c "BEGIN PRIVATE KEY" "$upper_file")
+        if [[ $is_not_encrypted = '1' ]]; then
           echo "$hostname $image $repo_tags $container $upper_file"
+        else
+          continue
         fi
       done
     fi
     lower_files=$($DOCKER_INSPECT -f {{.GraphDriver.Data.LowerDir}} "$container" | sed 's/:/\n/g' | xargs -I {} find {} -name "*.key" 2>/dev/null)
     if [[ $lower_files != "" ]]; then
       for lower_file in ${lower_files[@]}; do
-        is_encrypted=$(grep -c "BEGIN ENCRYPTED PRIVATE KEY" "$lower_file")
-        if [[ $is_encrypted = '1' ]]; then
-          continue
-        else
+        is_not_encrypted=$(grep -c "BEGIN PRIVATE KEY" "$lower_file")
+        if [[ $is_not_encrypted = '1' ]]; then
           echo "$hostname $image $repo_tags $container $lower_file"
+        else
+          continue
         fi
       done
     fi
