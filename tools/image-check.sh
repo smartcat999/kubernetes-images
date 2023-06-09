@@ -172,7 +172,7 @@ function scan-permission() {
       # shellcheck disable=SC2086
       repo_tags=$($DOCKER_INSPECT --format="{{index .RepoTags 0}}" $image 2>/dev/null)
       result=$($DOCKER_INSPECT -f {{.GraphDriver.Data.UpperDir}} "${image}" | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' |
-        xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" 2>/dev/null |
+        xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" -o ! -perm 640 "*.properties" 2>/dev/null |
         xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s %s\n", "'$hostname'", "'$image'", "'$repo_tags'", $1, $9)}}' 2>/dev/null)
       if [ "$result" != "" ]; then
         echo "$result"
@@ -180,7 +180,7 @@ function scan-permission() {
       fi
       # shellcheck disable=SC2086
       result=$($DOCKER_INSPECT -f {{.GraphDriver.Data.LowerDir}} "${image}" | awk -F ":" 'BEGIN{OFS="\n"}{ for(i=1;i<=NF;i++)printf("%s\n",$i)}' |
-        xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" 2>/dev/null |
+        xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" -o ! -perm 640 "*.properties" 2>/dev/null |
         xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s %s\n", "'$hostname'", "'$image'", "'$repo_tags'", $1, $9)}}' 2>/dev/null)
       if [ "$result" != "" ]; then
         echo "$result"
@@ -190,7 +190,7 @@ function scan-permission() {
       repo_tags=$($DOCKER_INSPECT -f {{.image.repo_tags}} $image | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
       result=$($DOCKER_INSPECT -f {{.image.Spec.rootfs.diff_ids}} "${image}" |
         grep -Eo '(sha256:[a-f0-9]+)' | awk -F: '{printf("/var/lib/isulad/storage/overlay/%s\n", $2)}' |
-        xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" 2>/dev/null |
+        xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" ! -perm 640 "*.properties" 2>/dev/null |
         xargs -I {} ls -l {} | awk -F ' ' '{if (NR>1) {printf("%s %s %s %s %s\n", "'$hostname'", "'$image'", "'$repo_tags'", $1, $9)}}' 2>/dev/null)
       if [ "$result" != "" ]; then
         echo "$result"
