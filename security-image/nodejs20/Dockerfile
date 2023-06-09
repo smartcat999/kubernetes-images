@@ -176,7 +176,7 @@ RUN rm /usr/bin/id && find /etc ! -perm 600 -name "*.crt" -o ! -perm 600 -name "
     find /etc ! -perm 640 -name "*.conf" 2>/dev/null | grep -v "/etc/resolv.conf" | xargs -I {} chmod 640 {} && \
     find /usr ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" 2>/dev/null | xargs -I {} chmod 600 {} && \
     find /usr ! -perm 640 -name "*.conf" 2>/dev/null | xargs -I {} chmod 640 {} && \
-    rm /etc/ssl/cert.pem && rm -rf /etc/ssl/certs/
+    rm /etc/ssl/cert.pem && rm -rf /etc/ssl/certs/ && rm -rf /etc/ssl1.1
 
 
 COPY docker-entrypoint.sh /usr/local/bin/
