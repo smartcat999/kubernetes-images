@@ -46,12 +46,14 @@ function modify-no-owner-file() {
 }
 
 check-modify-permission "/var/lib/docker/overlay2" "*.conf" 640
+check-modify-permission "/var/lib/docker/overlay2" "*.properties" 640
 check-modify-permission "/var/lib/docker/overlay2" "*.crt" 600
 check-modify-permission "/var/lib/docker/overlay2" "*.pem" 600
 modify-permission "/var/lib/docker/overlay2" "*.log" -x
 modify-no-owner-file "/"
 
 check-modify-permission "/var/lib/isulad/storage/overlay/" "*.conf" 640
+check-modify-permission "/var/lib/isulad/storage/overlay/" "*.properties" 640
 check-modify-permission "/var/lib/isulad/storage/overlay/" "*.crt" 600
 check-modify-permission "/var/lib/isulad/storage/overlay/" "*.pem" 600
 modify-permission "/var/lib/isulad/storage/overlay/" "*.log" -x
