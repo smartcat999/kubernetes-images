@@ -25,18 +25,23 @@
 # 不传path默认扫描 / 目录下的文件，不扫描 /proc 和 /sys
 # ./image-check.sh noowner ${path}
 
+# 9. 清除无用镜像
+# ./image-check.sh clean
+
 #set -x
 RUNTIME=${RUNTIME:-isula}
 DOCKER_IMAGE_LS="docker image ls"
 DOCKER_PS="docker ps"
 DOCKER_INSPECT="docker inspect"
 DOCKER_EXEC="docker exec"
+DOCKER_RMI="docker rmi"
 
 if [ $RUNTIME = "isula" ]; then
   DOCKER_IMAGE_LS="isula images"
   DOCKER_PS="isula ps"
   DOCKER_INSPECT="isula inspect"
   DOCKER_EXEC="isula exec"
+  DOCKER_RMI="isula rmi"
 fi
 
 function scan-privileged() {
@@ -63,7 +68,10 @@ function scan-root() {
       if [ "$RUNTIME" = "docker" ]; then
         image_info=$($DOCKER_INSPECT --format="{{index .RepoTags 0}}" $imageid 2>/dev/null)
       elif [ "$RUNTIME" = "isula" ]; then
-        image_info=$($DOCKER_INSPECT -f {{.image.repo_tags}} $imageid | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
+        image_info=$($DOCKER_INSPECT -f {{.image.repo_tags}} $imageid 2>/dev/null | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
+        if [[ "$image_info" = "" ]]; then
+          image_info=$($DOCKER_INSPECT -f {{.image.id}} $imageid)
+        fi
       else
         image_info=""
       fi
@@ -113,7 +121,7 @@ function scan-tools() {
         image_dir=$root_dir/$image_file
         # shellcheck disable=SC2002
         image_json=$(cat "${image_dir}/images.json")
-        image_id=$(echo $image_json| grep -Eo '"id": [^,]+' | awk '{print $2}' | sed 's/"//g')
+        image_id=$(echo $image_json | grep -Eo '"id": [^,]+' | awk '{print $2}' | sed 's/"//g')
         image_name=$(echo ${image_json} | grep -Eo '"names":[^,]+' | sed 's/ //g' | awk -F '"' '{print $4}')
         image_layer_file=$(find $image_dir | grep "=")
         layer_hashs=$(cat $image_layer_file | grep -Eo '"(sha256:[a-f0-9]+)"' | grep -E "'"${layer_egrep}"'")
@@ -147,7 +155,10 @@ function scan-env() {
     if [ "$RUNTIME" = "docker" ]; then
       image_info=$($DOCKER_INSPECT --format="{{index .RepoTags 0}}" $imageid 2>/dev/null)
     elif [ "$RUNTIME" = "isula" ]; then
-      image_info=$($DOCKER_INSPECT -f {{.image.repo_tags}} $imageid | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
+      image_info=$($DOCKER_INSPECT -f {{.image.repo_tags}} $imageid 2>/dev/null | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
+      if [[ "$image_info" = "" ]]; then
+        image_info=$($DOCKER_INSPECT -f {{.image.id}} $imageid)
+      fi
     else
       image_info=""
     fi
@@ -187,7 +198,7 @@ function scan-permission() {
         echo "$result" >>$output
       fi
     elif [ "$RUNTIME" = "isula" ]; then
-      repo_tags=$($DOCKER_INSPECT -f {{.image.repo_tags}} $image | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
+      repo_tags=$($DOCKER_INSPECT -f {{.image.repo_tags}} $image 2>/dev/null | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
       result=$($DOCKER_INSPECT -f {{.image.Spec.rootfs.diff_ids}} "${image}" |
         grep -Eo '(sha256:[a-f0-9]+)' | awk -F: '{printf("/var/lib/isulad/storage/overlay/%s\n", $2)}' |
         xargs -I {} find {} ! -perm 600 -name "*.crt" -o ! -perm 600 -name "*.pem" -o ! -perm 640 -name "*.conf" ! -perm 640 "*.properties" 2>/dev/null |
@@ -236,7 +247,7 @@ function scan-openssl() {
       repo_tags=$($DOCKER_INSPECT --format="{{index .RepoTags 0}}" $image 2>/dev/null)
       mounts=$($DOCKER_INSPECT --format='{{range .Mounts}}{{printf "%s\n" .Source}}{{end}}' "$container")
     elif [ "$RUNTIME" = "isula" ]; then
-      repo_tags=$($DOCKER_INSPECT --format="{{.image.repo_tags}}" $image | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
+      repo_tags=$($DOCKER_INSPECT --format="{{.image.repo_tags}}" $image 2>/dev/null | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
       mounts=$($DOCKER_INSPECT --format="{{.Mounts}}" $container | grep -Eo '("Source":[^,]*)' | awk -F: '{print $2}' | sed 's/ //g')
     else
       repo_tags=""
@@ -295,6 +306,22 @@ function scan-noowner() {
   find $dir -xdev \( -nouser -o -nogroup \) \( ! -path "/proc" -o ! -path "/sys" \) -type f -print | xargs -I {} ls -l {}
 }
 
+function clean-image() {
+  if [ "$RUNTIME" = "docker" ]; then
+    docker system prune -a -f
+  elif [ "$RUNTIME" = "isula" ]; then
+    images=$($DOCKER_IMAGE_LS | awk 'NR!=1 {print $3}')
+    # shellcheck disable=SC2068
+    for image in ${images[@]}; do
+      repo_tags=$($DOCKER_INSPECT --format="{{.image.repo_tags}}" $image 2>/dev/null | grep -Eo '[a-z\w]+[a-z0-9\w]+[^"]*')
+      if [[ "$repo_tags" = "" ]]; then
+        $DOCKER_RMI $image
+        echo "remove ${image}"
+      fi
+    done
+  fi
+}
+
 function utils {
   if [ ${debug:-false} = true ]; then
     set -x
@@ -317,6 +344,8 @@ function utils {
     scan-openssl
   elif [ "$CMD" = "noowner" ]; then
     scan-noowner $2
+  elif [ "$CMD" = "clean" ]; then
+    clean-image
   fi
 }
 

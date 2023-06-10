@@ -124,3 +124,9 @@ docker buildx create --name my-builder-proxy --bootstrap --use \
   --driver-opt env.https_proxy=socks5://${LISTEN_ADDRESS}:${LISTEN_PORT} \
   --driver-opt '"env.no_proxy='localhost,127.0.0.1'"' \
   --driver-opt network=host
+
+#docker buildx create --name my-builder-proxy --bootstrap --use \
+#  --driver-opt env.http_proxy=socks5://127.0.01:1080 \
+#  --driver-opt env.https_proxy=socks5://127.0.01:1080 \
+#  --driver-opt '"env.no_proxy='localhost,127.0.0.1'"' \
+#  --driver-opt network=host

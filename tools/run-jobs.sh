@@ -66,8 +66,8 @@ function dump_openssl_containers {
 }
 
 function clean_image_unused() {
-  docker system prune -a -f
-  batch_run "docker system prune -a -f"
+  ./image-check.sh clean
+  batch_run "/root/image-check.sh clean"
 }
 
 CMD=$1
