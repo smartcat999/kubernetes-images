@@ -12,6 +12,9 @@
 # 加载 .tar.gz 文件到镜像
 # 4. ./sync-ks-image.sh load-images
 
+# 上传镜像文件到测试环境并更新deployment
+# 5. ./sync-ks-image.sh save-fs-image
+
 if [[ ${debug:-flase} = "true" ]]; then
   set -x
 fi
@@ -100,6 +103,15 @@ function save-images() {
   done
 }
 
+# save-tag-image registry.cn-beijing.aliyuncs.com/kse/ks-apiserver:release-3.3-isdp \
+#  dockerhub.kubekey.local/huawei/ks-apiserver:release-3.3-isdp \
+#  ks-apiserver-release-3.3-isdp.tar
+function save-tag-image() {
+  docker pull $1 &&
+    docker tag $1 $2 &&
+    docker save $2 -o $3
+}
+
 function load-images() {
   # shellcheck disable=SC2128
   repo=${repo:-dockerhub.kubekey.local/huawei}
@@ -118,6 +130,71 @@ function load-images() {
   done
 }
 
+function save-fs-image() {
+  file=ks-image.tmp
+  if [[ -f "$file" ]]; then
+    # shellcheck disable=SC2046
+    echo "input: $file"
+    # shellcheck disable=SC2005
+    echo "$(cat $file)"
+  else
+    cat >"$file" <<EOF
+API_IMAGE=
+CONTROLLER_IMAGE=
+CONSOLE_IMAGE=
+EOF
+    echo "please write image_tag in ${file}
+API_IMAGE=registry.cn-beijing.aliyuncs.com/kse/ks-apiserver:v3.3.2
+CONTROLLER_IMAGE=registry.cn-beijing.aliyuncs.com/kse/ks-controller-manager:v3.3.2
+CONSOLE_IMAGE=registry.cn-beijing.aliyuncs.com/kse/ks-console:v3.3.2
+"
+    exit
+  fi
+  # shellcheck disable=SC2002
+  API_IMAGE=$(cat "$file" | grep "API_IMAGE=" | cut -d= -f2)
+  if [[ "$API_IMAGE" != "" ]]; then
+    TARGET_API_IMAGE=dockerhub.kubekey.local/huawei/ks-apiserver:release-3.3-isdp
+    TARGET_API_IMAGE_FILE=ks-apiserver-release-3.3-isdp.tar
+    save-tag-image $API_IMAGE $TARGET_API_IMAGE $TARGET_API_IMAGE_FILE
+  fi
+
+  # shellcheck disable=SC2002
+  CONTROLLER_IMAGE=$(cat "$file" | grep "CONTROLLER_IMAGE=" | cut -d= -f2)
+  if [[ "$CONTROLLER_IMAGE" != "" ]]; then
+    TARGET_CONTROLLER_IMAGE=dockerhub.kubekey.local/huawei/ks-controller-manager:release-3.3-isdp
+    TARGET_CONTROLLER_IMAGE_FILE=ks-controller-manager-release-3.3-isdp.tar
+    save-tag-image $CONTROLLER_IMAGE $TARGET_CONTROLLER_IMAGE $TARGET_CONTROLLER_IMAGE_FILE
+  fi
+
+  CONSOLE_IMAGE=$(cat "$file" | grep "CONSOLE_IMAGE=" | cut -d= -f2)
+  if [[ "$CONSOLE_IMAGE" != "" ]]; then
+    TARGET_CONSOLE_IMAGE=dockerhub.kubekey.local/huawei/ks-console:kse-release-3.3-isdp
+    TARGET_CONSOLE_IMAGE_FILE=ks-console-kse-release-3.3-isdp.tar
+    save-tag-image $CONSOLE_IMAGE $TARGET_CONSOLE_IMAGE $TARGET_CONSOLE_IMAGE_FILE
+  fi
+
+  # upload ks image
+  scp -P 2222 $TARGET_CONSOLE_IMAGE_FILE $TARGET_API_IMAGE_FILE $TARGET_CONTROLLER_IMAGE_FILE \
+  service@localhost:/home/service/
+
+  NODE=192.168.200.3
+  ssh service@localhost -p 2222 \
+  "scp /home/service/$TARGET_CONSOLE_IMAGE_FILE /home/service/$TARGET_API_IMAGE_FILE /home/service/$TARGET_CONTROLLER_IMAGE_FILE root@$NODE:/root/"
+  ssh service@localhost -p 2222 \
+  "ssh root@$NODE 'docker load -i /root/$TARGET_CONSOLE_IMAGE_FILE && \
+  docker push $TARGET_CONSOLE_IMAGE && \
+  kubectl -n kubesphere-system set image deploy ks-console ks-console=$TARGET_CONSOLE_IMAGE && \
+  kubectl -n kubesphere-system rollout restart deploy ks-console
+  docker load -i /root/$TARGET_API_IMAGE_FILE && \
+  docker push $TARGET_API_IMAGE && \
+  kubectl -n kubesphere-system set image deploy ks-apiserver ks-apiserver=$TARGET_API_IMAGE && \
+  kubectl -n kubesphere-system rollout restart deploy ks-apiserver \
+  docker load -i /root/$TARGET_CONTROLLER_IMAGE_FILE && \
+  docker push $TARGET_CONTROLLER_IMAGE &&
+  kubectl -n kubesphere-system set image deploy ks-controller-manager ks-controller-manager=$TARGET_CONTROLLER_IMAGE && \
+  kubectl -n kubesphere-system rollout restart deploy ks-controller-manager'"
+}
+
 if [[ $CMD = "docker" ]]; then
   sync-docker-harbor
 elif [[ $CMD = "ali" ]]; then
@@ -126,4 +203,6 @@ elif [ "$CMD" = "save_images" ]; then
   save-images
 elif [ "$CMD" = "load_images" ]; then
   load-images
+elif [ "$CMD" = "save-fs-image" ]; then
+  save-fs-image
 fi
