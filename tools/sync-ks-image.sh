@@ -14,7 +14,7 @@
 
 # 上传镜像文件到测试环境并更新deployment
 # 修改 ks-image.tmp 中对应的镜像地址，执行以下命令更新
-# 5. ./sync-ks-image.sh save-fs-image
+# 5. ./sync-ks-image.sh deploy
 
 if [[ ${debug:-flase} = "true" ]]; then
   set -x
@@ -131,7 +131,7 @@ function load-images() {
   done
 }
 
-function save-fs-image() {
+function deploy-ks-image() {
   file=ks-image.tmp
   if [[ -f "$file" ]]; then
     # shellcheck disable=SC2046
@@ -204,6 +204,6 @@ elif [ "$CMD" = "save_images" ]; then
   save-images
 elif [ "$CMD" = "load_images" ]; then
   load-images
-elif [ "$CMD" = "save-fs-image" ]; then
-  save-fs-image
+elif [ "$CMD" = "deploy" ]; then
+  deploy-ks-image
 fi
