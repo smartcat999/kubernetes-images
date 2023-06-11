@@ -13,6 +13,7 @@
 # 4. ./sync-ks-image.sh load-images
 
 # 上传镜像文件到测试环境并更新deployment
+# 修改 ks-image.tmp 中对应的镜像地址，执行以下命令更新
 # 5. ./sync-ks-image.sh save-fs-image
 
 if [[ ${debug:-flase} = "true" ]]; then
