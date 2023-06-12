@@ -132,7 +132,9 @@ function load-images() {
 }
 
 function deploy-ks-image() {
-  file=ks-image.tmp
+  dir=$(dirname $0)
+  echo "dir: $dir"
+  file=$dir/ks-image.tmp
   if [[ -f "$file" ]]; then
     # shellcheck disable=SC2046
     echo "input: $file"
