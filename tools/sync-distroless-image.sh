@@ -49,6 +49,7 @@ function build-nodejs() {
           oci_dir=oci:bazel-bin/nodejs/${version}_debug_nonroot_${arch}_${DEBIAN_VERSION}
         fi
         skopeo copy $oci_dir docker-daemon:$image
+        docker push $image
         docker manifest create $manifest -a $image
       done
       docker manifest push $manifest
@@ -81,6 +82,7 @@ function build-base() {
         oci_dir=oci:bazel-bin/base/debug_nonroot_${arch}_${DEBIAN_VERSION}
       fi
       skopeo copy $oci_dir docker-daemon:$image
+      docker push $image
       docker manifest create $manifest -a $image
     done
     docker manifest push $manifest
@@ -105,13 +107,14 @@ function build-base-nossl() {
     for arch in ${ARCH[@]}; do
       # shellcheck disable=SC2128
 
-      image=${REPO}/base-${DEBIAN_VERSION}:${tag}-${arch}
+      image=${REPO}/base-nossl-${DEBIAN_VERSION}:${tag}-${arch}
       if [[ $tag = "nonroot" ]]; then
         oci_dir=oci:bazel-bin/base/base_nossl_nonroot_${arch}_${DEBIAN_VERSION}
       else
         oci_dir=oci:bazel-bin/base/base_nossl_debug_nonroot_${arch}_${DEBIAN_VERSION}
       fi
       skopeo copy $oci_dir docker-daemon:$image
+      docker push $image
       docker manifest create $manifest -a $image
     done
     docker manifest push $manifest
@@ -143,6 +146,7 @@ function build-static() {
         oci_dir=oci:bazel-bin/base/static_debug_nonroot_${arch}_${DEBIAN_VERSION}
       fi
       skopeo copy $oci_dir docker-daemon:$image
+      docker push $image
       docker manifest create $manifest -a $image
     done
     docker manifest push $manifest
