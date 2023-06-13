@@ -1,3 +1,7 @@
 .idea
 dist/
 tmp/
+security-image/nodejs20/node/
+security-image/nodejs20/openssl/
+tools/security-cipher.sh
+scan_117832/

@@ -1,10 +1,13 @@
-FROM alpine:edge as openssl
+FROM alpine:3.16 as openssl
 
 ENV OPENSSL_VERSION openssl-3.1.0+quic
 ENV NODE_VERSION 20.2.0
 ENV NODE_BRANCH v20.x
 
 WORKDIR /tmp
+
+ADD ./node /tmp/node
+ADD ./openssl /tmp/openssl
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
     && apk update \
@@ -27,13 +30,13 @@ RUN ARCH= && alpineArch="$(apk --print-arch)" \
         linux-headers \
         make \
         python3 \
-    && git clone https://github.com/nodejs/node.git \
     && cd node  \
+#    && git pull \
     && git checkout ${NODE_BRANCH} \
     && cd ..
 
-RUN git clone https://github.com/quictls/openssl  \
-    && cd openssl  \
+RUN cd openssl  \
+#    && git pull \
     && git checkout $OPENSSL_VERSION \
     && cd ../node/deps/openssl \
     && rm -rf openssl \
@@ -50,7 +53,7 @@ RUN cd /tmp/node \
     && git commit -m "deps: update archs files for quictls/${OPENSSL_VERSION}"
 
 
-FROM alpine:edge as base
+FROM alpine:3.16 as base
 
 COPY --from=openssl /tmp/node /tmp/node
 
@@ -86,18 +89,18 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
   && npm --version \
   && rm -rf /tmp/node
 
-ENV YARN_VERSION 1.22.19
-
-RUN apk add --no-cache --virtual .build-deps-yarn curl gnupg tar \
-  && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
-  && mkdir -p /opt \
-  && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
-  && ln -s /opt/yarn-v$YARN_VERSION/bin/yarn /usr/local/bin/yarn \
-  && ln -s /opt/yarn-v$YARN_VERSION/bin/yarnpkg /usr/local/bin/yarnpkg \
-  && rm yarn-v$YARN_VERSION.tar.gz \
-  && apk del .build-deps-yarn \
-  # smoke test
-  && yarn --version
+#ENV YARN_VERSION 1.22.19
+#
+#RUN apk add --no-cache --virtual .build-deps-yarn curl gnupg tar \
+#  && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
+#  && mkdir -p /opt \
+#  && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
+#  && ln -s /opt/yarn-v$YARN_VERSION/bin/yarn /usr/local/bin/yarn \
+#  && ln -s /opt/yarn-v$YARN_VERSION/bin/yarnpkg /usr/local/bin/yarnpkg \
+#  && rm yarn-v$YARN_VERSION.tar.gz \
+#  && apk del .build-deps-yarn \
+#  # smoke test
+#  && yarn --version
 
 RUN apk add shadow && \
     usermod -s /sbin/nologin -g nogroup sync && \
@@ -106,7 +109,9 @@ RUN apk add shadow && \
     usermod -s /sbin/nologin -g nogroup operator && \
     apk del shadow
 
-RUN apk update && \
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
+    apk update && \
     apk --no-cache upgrade --available && \
     sync && \
     rm /var/cache/apk/*
