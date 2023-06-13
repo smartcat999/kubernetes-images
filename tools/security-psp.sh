@@ -142,14 +142,16 @@ roleRef:
   name: restricted-psp
 subjects:
 - kind: Group
-  name: system:authenticated
+  name: system:serviceaccounts
   apiGroup: rbac.authorization.k8s.io
 EOF
 
   namespaces=$($KUBECTL get ns | awk '{if (NR>1) print $1}')
   # shellcheck disable=SC2068
   for namespace in ${namespaces[@]}; do
-    if [[ "$namespace" != "kubesphere-system" ]]; then
+    if [[ "$namespace" != "kubesphere-system" ]] && \
+    [[ "$namespace" != "kubesphere-monitoring-system" ]] && \
+    [[ "$namespace" != "kubesphere-monitoring-federated" ]]; then
       #    echo "find namespace: ${namespace}"
       continue
     fi
