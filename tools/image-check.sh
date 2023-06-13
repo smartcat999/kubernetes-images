@@ -25,7 +25,10 @@
 # 不传path默认扫描 / 目录下的文件，不扫描 /proc 和 /sys
 # ./image-check.sh noowner ${path}
 
-# 9. 清除无用镜像
+# 9. 镜像无用文件裁剪扫描
+# ./image-check.sh compress
+
+# 10. 清除无用镜像
 # ./image-check.sh clean
 
 #set -x
@@ -306,6 +309,26 @@ function scan-noowner() {
   find $dir -xdev \( -nouser -o -nogroup \) \( ! -path "/proc" -o ! -path "/sys" \) -type f -print | xargs -I {} ls -l {}
 }
 
+function scan-compress() {
+  imageids=$($DOCKER_IMAGE_LS | awk 'NR!=1 {print $3}')
+  hostname=$(sh -c hostname)
+  # shellcheck disable=SC2068
+  for imageid in ${imageids[@]}; do
+    tools=("ssl" "gcc" "gdb" "cert.pem")
+    tag=$(docker inspect -f "{{index .RepoTags 0}}" $imageid 2>/dev/null)
+    if [ "$tag" == "" ]; then
+      show_tag=$imageid
+    else
+      show_tag=$tag
+    fi
+    # shellcheck disable=SC2068
+    for tool in ${tools[@]}; do
+      docker inspect -f {{.GraphDriver.Data.UpperDir}} $imageid |sed 's/:/\n/g' \
+      |xargs find |grep $tool | awk '{printf("%s %s %s\n", "'$show_tag'", "'$tool'", $1)}'
+    done
+  done
+}
+
 function clean-image() {
   if [ "$RUNTIME" = "docker" ]; then
     docker system prune -a -f
@@ -344,6 +367,8 @@ function utils {
     scan-openssl
   elif [ "$CMD" = "noowner" ]; then
     scan-noowner $2
+  elif [ "$CMD" = "compress" ]; then
+    scan-compress
   elif [ "$CMD" = "clean" ]; then
     clean-image
   fi
