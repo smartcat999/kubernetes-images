@@ -105,6 +105,16 @@ systemctl start v2ray.service
 
 netstat -tlnup | grep v2ray
 
+# protocol: socks5 -> http
+# 1. apt-get install privoxy
+
+# 2. vim /etc/privoxy/config
+# forward-socks5 /               127.0.0.1:1080 .
+# listen-address localhost:1081
+
+# 3. systemctl restart privoxy
+
+
 # docker pull proxy
 mkdir -p /etc/systemd/system/docker.service.d
 
