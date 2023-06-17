@@ -313,7 +313,7 @@ EOF
 apiVersion: v1
 kind: Pod
 metadata:
-  name: test-pod
+  name: test-pod-privileged
   namespace: $namespace
 spec:
   containers:
@@ -322,9 +322,29 @@ spec:
     securityContext:
       privileged: true
 EOF
+  cat <<EOF | $KUBECTL --token=$token --kubeconfig=/dev/null --server="https://${apiserver}" --insecure-skip-tls-verify=true apply -f -
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: test-pod-volume-mounts
+    namespace: $namespace
+  spec:
+    containers:
+    - name: nginx-container
+      image: nginx
+      volumeMounts:
+      - mountPath: /var
+        name: test-volume
+    volumes:
+    - name: test-volume
+      hostPath:
+        path: /var
+        type: Directory
+EOF
 
   # 7. clear test env
-  $KUBECTL delete pod test-pod -n $namespace
+  $KUBECTL delete pod test-pod-privileged -n $namespace
+  $KUBECTL delete pod test-pod-volume-mounts -n $namespace
   $KUBECTL delete RoleBinding $role_binding -n $namespace
   $KUBECTL delete Role $role -n $namespace
   $KUBECTL delete sa $sa -n $namespace

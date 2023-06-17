@@ -147,9 +147,9 @@ CONTROLLER_IMAGE=
 CONSOLE_IMAGE=
 EOF
     echo "please write image_tag in ${file}
-API_IMAGE=registry.cn-beijing.aliyuncs.com/kse/ks-apiserver:v3.3.2
-CONTROLLER_IMAGE=registry.cn-beijing.aliyuncs.com/kse/ks-controller-manager:v3.3.2
-CONSOLE_IMAGE=registry.cn-beijing.aliyuncs.com/kse/ks-console:v3.3.2
+API_IMAGE=*****
+CONTROLLER_IMAGE=*****
+CONSOLE_IMAGE=*****
 "
     exit
   fi
@@ -178,13 +178,13 @@ CONSOLE_IMAGE=registry.cn-beijing.aliyuncs.com/kse/ks-console:v3.3.2
 
   # upload ks image
   scp -P 2222 $TARGET_CONSOLE_IMAGE_FILE $TARGET_API_IMAGE_FILE $TARGET_CONTROLLER_IMAGE_FILE \
-  service@localhost:/home/service/
+    service@localhost:/home/service/
 
   NODE=192.168.200.3
   ssh service@localhost -p 2222 \
-  "scp /home/service/$TARGET_CONSOLE_IMAGE_FILE /home/service/$TARGET_API_IMAGE_FILE /home/service/$TARGET_CONTROLLER_IMAGE_FILE root@$NODE:/root/"
+    "scp /home/service/$TARGET_CONSOLE_IMAGE_FILE /home/service/$TARGET_API_IMAGE_FILE /home/service/$TARGET_CONTROLLER_IMAGE_FILE root@$NODE:/root/"
   ssh service@localhost -p 2222 \
-  "ssh root@$NODE 'docker load -i /root/$TARGET_CONSOLE_IMAGE_FILE && \
+    "ssh root@$NODE 'docker load -i /root/$TARGET_CONSOLE_IMAGE_FILE && \
   docker push $TARGET_CONSOLE_IMAGE && \
   kubectl -n kubesphere-system set image deploy ks-console ks-console=$TARGET_CONSOLE_IMAGE && \
   kubectl -n kubesphere-system rollout restart deploy ks-console
@@ -198,9 +198,26 @@ CONSOLE_IMAGE=registry.cn-beijing.aliyuncs.com/kse/ks-console:v3.3.2
   kubectl -n kubesphere-system rollout restart deploy ks-controller-manager'"
 }
 
-if [[ $CMD = "docker" ]]; then
+function export-k8s-images() {
+  dir=$(dirname $0)
+  script=k8s-exporter.sh
+  package=qkcp-v4-offline-images-linux-arm64.tar.gz
+  scp -P 2222 $script service@localhost:/home/service
+  NODE=192.168.200.3
+  # shellcheck disable=SC2087
+  ssh service@localhost -p 2222 << eeooff
+scp /home/service/$script root@$NODE:/var/lib/docker
+ssh root@$NODE 'chmod +x /var/lib/docker/$script && cd /var/lib/docker/ && ./$script images'
+scp root@$NODE:/var/lib/docker/$package /home/service
+scp -P 2222 service@localhost:/home/service/$package /root/wp
+eeooff
+#    ssh service@localhost -p 2222 \
+#      "rm /home/service/$package && ssh root@$NODE 'rm $package'"
+}
+
+if [ $CMD = "docker" ]; then
   sync-docker-harbor
-elif [[ $CMD = "ali" ]]; then
+elif [ $CMD = "ali" ]; then
   sync-aliyuncs-harbor
 elif [ "$CMD" = "save_images" ]; then
   save-images
@@ -208,4 +225,6 @@ elif [ "$CMD" = "load_images" ]; then
   load-images
 elif [ "$CMD" = "deploy" ]; then
   deploy-ks-image
+elif [ "$CMD" = "export" ]; then
+  export-k8s-images
 fi
