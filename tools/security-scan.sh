@@ -36,7 +36,8 @@ function modify-no-owner-file() {
     echo "uid: $uid,gid: $gid,file: $target"
     # shellcheck disable=SC2046
     if [ "$(getent passwd $uid)" = "" ]; then
-      useradd -u $uid user$uid
+      useradd -u $uid user$uid -s /sbin/nologin
+#      usermod $uid -s /sbin/nologin
     fi
     # shellcheck disable=SC2046
     if [ "$(getent group $gid)" = "" ]; then
