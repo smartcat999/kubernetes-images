@@ -17,7 +17,7 @@ for elem in ${target[@]}; do
   if [ "$elem" = "$node_ip" ]; then
     continue
   fi
-  scp image-check.sh "root@$elem:/root/"
+  scp image-check.sh security-account.sh "root@$elem:/root/"
 done
 
 function batch_run() {
@@ -45,11 +45,6 @@ function dump_envs_containers {
   batch_run "/root/image-check.sh env"
 }
 
-function pull_update_images {
-  ./image-check.sh pull
-  batch_run "/root/image-check.sh pull"
-}
-
 function dump_permission_file_images {
   ./image-check.sh permission
   batch_run "/root/image-check.sh permission"
@@ -70,6 +65,11 @@ function clean_image_unused() {
   batch_run "/root/image-check.sh clean"
 }
 
+function dump_system_account() {
+  ./security-account.sh
+  batch_run "/root/security-account.sh"
+}
+
 CMD=$1
 
 if [ "$CMD" = "root" ]; then
@@ -82,10 +82,10 @@ elif [ "$CMD" = "permission" ]; then
   dump_permission_file_images
 elif [ "$CMD" = "token" ]; then
   dump_api_access_token_containers
-elif [[ "$CMD" = "openssl" ]]; then
+elif [ "$CMD" = "openssl" ]; then
   dump_openssl_containers
-elif [ "$CMD" = "pull" ]; then
-  pull_update_images
+elif [ "$CMD" = "account" ]; then
+  dump_system_account
 elif [ "$CMD" = "clean" ]; then
   clean_image_unused
 fi
