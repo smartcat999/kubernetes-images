@@ -180,57 +180,57 @@ rules:
       - '*'
 EOF
   # create NodeGroupRole role-template
-  #  cat <<EOF | kubectl apply -f -
-  #apiVersion: iam.kubesphere.io/v1alpha2
-  #kind: NodeGroupRole
-  #metadata:
-  #  annotations:
-  #    iam.kubesphere.io/module: Access Control
-  #    iam.kubesphere.io/role-template-rules: '{"nodegroups": "view"}'
-  #    kubesphere.io/alias-name: NodeGroups View
-  #  labels:
-  #    iam.kubesphere.io/role-template: 'true'
-  #  name: role-template-view-nodegroups
-  #rules:
-  #  - apiGroups:
-  #      - 'infra.kubesphere.io'
-  #    resources:
-  #      - 'nodegroups'
-  #      - 'nodes'
-  #      - 'namespaces'
-  #    verbs:
-  #      - 'get'
-  #      - 'list'
-  #      - 'watch'
-  #
-  #---
-  #apiVersion: iam.kubesphere.io/v1alpha2
-  #kind: NodeGroupRole
-  #metadata:
-  #  annotations:
-  #    iam.kubesphere.io/dependencies: '["role-template-view-nodegroups"]'
-  #    iam.kubesphere.io/module: Access Control
-  #    iam.kubesphere.io/role-template-rules: '{"nodegroups": "manage"}'
-  #    kubesphere.io/alias-name: NodeGroups Management
-  #  labels:
-  #    iam.kubesphere.io/role-template: 'true'
-  #  name: role-template-manage-nodegroups
-  #rules:
-  #  - apiGroups:
-  #      - 'infra.kubesphere.io'
-  #    resources:
-  #      - 'nodegroups'
-  #    verbs:
-  #      - '*'
-  #  - apiGroups:
-  #      - 'iam.kubesphere.io'
-  #    resources:
-  #      - 'roles'
-  #      - 'members'
-  #      - 'members/nodegrouproles'
-  #    verbs:
-  #      - '*'
-  #EOF
+  cat <<EOF | kubectl apply -f -
+apiVersion: iam.kubesphere.io/v1alpha2
+kind: NodeGroupRole
+metadata:
+  annotations:
+    iam.kubesphere.io/module: Access Control
+    iam.kubesphere.io/role-template-rules: '{"nodegroups": "view"}'
+    kubesphere.io/alias-name: NodeGroups View
+  labels:
+    iam.kubesphere.io/role-template: 'true'
+  name: role-template-view-nodegroups
+rules:
+  - apiGroups:
+      - 'infra.kubesphere.io'
+    resources:
+      - 'nodegroups'
+      - 'nodes'
+      - 'namespaces'
+    verbs:
+      - 'get'
+      - 'list'
+      - 'watch'
+
+---
+apiVersion: iam.kubesphere.io/v1alpha2
+kind: NodeGroupRole
+metadata:
+  annotations:
+    iam.kubesphere.io/dependencies: '["role-template-view-nodegroups"]'
+    iam.kubesphere.io/module: Access Control
+    iam.kubesphere.io/role-template-rules: '{"nodegroups": "manage"}'
+    kubesphere.io/alias-name: NodeGroups Management
+  labels:
+    iam.kubesphere.io/role-template: 'true'
+  name: role-template-manage-nodegroups
+rules:
+  - apiGroups:
+      - 'infra.kubesphere.io'
+    resources:
+      - 'nodegroups'
+    verbs:
+      - '*'
+  - apiGroups:
+      - 'iam.kubesphere.io'
+    resources:
+      - 'roles'
+      - 'members'
+      - 'members/nodegrouproles'
+    verbs:
+      - '*'
+EOF
 
   # init RoleBase
   cat <<EOF | kubectl apply -f -
@@ -242,6 +242,9 @@ role:
   apiVersion: iam.kubesphere.io/v1alpha2
   kind: NodeGroupRole
   metadata:
+    annotations:
+      iam.kubesphere.io/aggregation-roles: '["role-template-view-nodegroups"]'
+      kubesphere.io/creator: system
     name: viewer
   rules:
     - apiGroups:
@@ -264,6 +267,9 @@ role:
   apiVersion: iam.kubesphere.io/v1alpha2
   kind: NodeGroupRole
   metadata:
+    annotations:
+      iam.kubesphere.io/aggregation-roles: '["role-template-manage-nodegroups","role-template-view-nodegroups"]'
+      kubesphere.io/creator: system
     name: admin
   rules:
     - apiGroups:
