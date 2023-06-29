@@ -65,6 +65,9 @@ function create-nodegroup() {
       "spec": {
           "alias": "'"$nodegroup"'",
           "description": "'"$nodegroup"'"
+      },
+      "status": {
+          "state": "active"
       }
   }'
 }
