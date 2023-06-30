@@ -12,25 +12,31 @@ V2Ray_VERSION=v5.4.1
 # shellcheck disable=SC2164
 cd /root/
 os=$(uname -m)
-if [[ "$os" = "aarch64" ]]; then
-  curl -SsL "https://github.com/v2fly/v2ray-core/releases/download/${V2Ray_VERSION}/v2ray-linux-arm64-v8a.zip" \
-    -o v2ray.zip
-elif [[ "$os" = "x86_64" ]]; then
-  curl -SsL "https://github.com/v2fly/v2ray-core/releases/download/${V2Ray_VERSION}/v2ray-linux-64.zip" \
-    -o v2ray.zip
-fi
+
 
 if [[ ! -f "v2ray.zip" ]]; then
-  echo "Download File Error"
+  if [[ "$os" = "aarch64" ]]; then
+    curl -SsL "https://github.com/v2fly/v2ray-core/releases/download/${V2Ray_VERSION}/v2ray-linux-arm64-v8a.zip" \
+      -o v2ray.zip
+  elif [[ "$os" = "x86_64" ]]; then
+    curl -SsL "https://github.com/v2fly/v2ray-core/releases/download/${V2Ray_VERSION}/v2ray-linux-64.zip" \
+      -o v2ray.zip
+  fi
+
+  if [[ ! -f "v2ray.zip" ]]; then
+    echo "Download File Error"
+  fi
+
   exit
 fi
 
 unzip v2ray.zip -d /root/v2ray/
 
 # 2. COPY file to /usr/local/bin/
-cp /root/v2ray /usr/local/bin/
+cp -r  /root/v2ray /usr/local/v2ray
 
 # 3. generate config
+mkdir -p /usr/local/etc/v2ray/
 cat >/usr/local/etc/v2ray/config.json <<EOF
 {
     "inbounds": [
@@ -81,7 +87,7 @@ cat >/usr/local/etc/v2ray/config.json <<EOF
 EOF
 
 # 4. generate systemd config
-cat >>/etc/systemd/system/v2ray.service <<EOF
+cat >/etc/systemd/system/v2ray.service <<EOF
 [Unit]
 Description=V2Ray Service
 Documentation=https://www.v2fly.org/
@@ -92,7 +98,7 @@ User=nobody
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
-ExecStart=/usr/local/bin/v2ray/v2ray run -config /usr/local/etc/v2ray/config.json
+ExecStart=/usr/local/v2ray/v2ray run -config /usr/local/etc/v2ray/config.json
 Restart=on-failure
 RestartPreventExitStatus=23
 
