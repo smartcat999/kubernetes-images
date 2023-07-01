@@ -49,7 +49,7 @@ function build-nodejs() {
           oci_dir=oci:bazel-bin/nodejs/${version}_debug_nonroot_${arch}_${DEBIAN_VERSION}
         fi
         skopeo copy $oci_dir docker-daemon:$image
-#        docker push $image
+        docker push $image
         docker manifest create $manifest -a $image
       done
       docker manifest push $manifest
@@ -83,7 +83,7 @@ function build-base() {
         oci_dir=oci:bazel-bin/base/debug_nonroot_${arch}_${DEBIAN_VERSION}
       fi
       skopeo copy $oci_dir docker-daemon:$image
-#      docker push $image
+      docker push $image
       docker manifest create $manifest -a $image
     done
     docker manifest push $manifest
@@ -121,7 +121,7 @@ function build-base-nossl() {
         oci_dir=oci:bazel-bin/base/base_nossl_debug_nonroot_${arch}_${DEBIAN_VERSION}
       fi
       skopeo copy $oci_dir docker-daemon:$image
-#      docker push $image
+      docker push $image
       docker manifest create $manifest -a $image
     done
     docker manifest push $manifest
@@ -154,7 +154,7 @@ function build-static() {
         oci_dir=oci:bazel-bin/base/static_debug_nonroot_${arch}_${DEBIAN_VERSION}
       fi
       skopeo copy $oci_dir docker-daemon:$image
-#      docker push $image
+      docker push $image
       docker manifest create $manifest -a $image
     done
     docker manifest push $manifest
