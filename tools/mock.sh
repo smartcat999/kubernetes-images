@@ -32,7 +32,7 @@ if [ "$KS_USER" = "" ] || [ "$KS_PASS" = "" ]; then
 fi
 
 function discover-ks-apiserver() {
-  apiserver=$(kubectl -n kubesphere-system get pods -o wide -l app=ks-apiserver | awk '{if ( NR>1 ) print $6 }')
+  apiserver=$(kubectl -n kubesphere-system get pods -l app=ks-apiserver -o jsonpath="{.items[0].status.podIP}")
   export KS_APISERVER=http://$apiserver:9090
 }
 
@@ -503,7 +503,15 @@ rules:
       - 'get'
       - 'list'
       - 'watch'
-
+  - apiGroups:
+      - 'resources.kubesphere.io'
+    resources:
+      - 'namespaces'
+      - 'services'
+    verbs:
+      - 'get'
+      - 'list'
+      - 'watch'
 ---
 apiVersion: iam.kubesphere.io/v1alpha2
 kind: NodeGroupRole
@@ -521,6 +529,8 @@ rules:
       - 'infra.kubesphere.io'
     resources:
       - 'nodegroups'
+      - 'nodes'
+      - 'namespaces'
     verbs:
       - '*'
   - apiGroups:
@@ -529,6 +539,13 @@ rules:
       - 'roles'
       - 'members'
       - 'members/nodegrouproles'
+    verbs:
+      - '*'
+  - apiGroups:
+      - 'resources.kubesphere.io'
+    resources:
+      - 'namespaces'
+      - 'services'
     verbs:
       - '*'
 EOF
@@ -558,7 +575,15 @@ role:
         - 'get'
         - 'list'
         - 'watch'
-
+    - apiGroups:
+        - 'resources.kubesphere.io'
+      resources:
+        - 'namespaces'
+        - 'services'
+      verbs:
+        - 'get'
+        - 'list'
+        - 'watch'
 ---
 apiVersion: iam.kubesphere.io/v1alpha2
 kind: RoleBase
@@ -577,6 +602,8 @@ role:
         - 'infra.kubesphere.io'
       resources:
         - 'nodegroups'
+        - 'nodes'
+        - 'namespaces'
       verbs:
         - '*'
     - apiGroups:
@@ -585,6 +612,13 @@ role:
         - 'roles'
         - 'members'
         - 'members/nodegrouproles'
+      verbs:
+        - '*'
+    - apiGroups:
+        - 'resources.kubesphere.io'
+      resources:
+        - 'namespaces'
+        - 'services'
       verbs:
         - '*'
 EOF
