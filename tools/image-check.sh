@@ -28,16 +28,21 @@
 # 9. 镜像无用文件裁剪扫描
 # ./image-check.sh compress
 
-# 10. 清除无用镜像
+# 10. 镜像cve扫描
+# 需要将待扫描的镜像清单写入 ./images.txt 中，每个镜像单独一行
+# ./image-check.sh image
+
+# 11. 清除无用镜像
 # ./image-check.sh clean
 
 #set -x
-RUNTIME=${RUNTIME:-isula}
+RUNTIME=${RUNTIME:-docker}
 DOCKER_IMAGE_LS="docker image ls"
 DOCKER_PS="docker ps"
 DOCKER_INSPECT="docker inspect"
 DOCKER_EXEC="docker exec"
 DOCKER_RMI="docker rmi"
+DOCKER_PULL="docker pull"
 
 if [ $RUNTIME = "isula" ]; then
   DOCKER_IMAGE_LS="isula images"
@@ -109,6 +114,7 @@ function scan-tools() {
       if [ "$result" != "" ]; then
         echo "$result" >>$output
       fi
+      echo $result
     elif [ $RUNTIME = "isula" ]; then
       layer_dirs=$(find /var/lib/isulad/storage/overlay/ | grep diff$ | xargs -I {} find {} | grep -i "/${tool}$" | awk -F/ '{print $7}' | uniq | sort | grep -v "^$")
       if [ "$layer_dirs" = "" ]; then
@@ -323,9 +329,139 @@ function scan-compress() {
     fi
     # shellcheck disable=SC2068
     for tool in ${tools[@]}; do
-      docker inspect -f {{.GraphDriver.Data.UpperDir}} $imageid |sed 's/:/\n/g' \
-      |xargs find |grep $tool | awk '{printf("%s %s %s\n", "'$show_tag'", "'$tool'", $1)}'
+      $DOCKER_INSPECT -f {{.GraphDriver.Data.UpperDir}} $imageid | sed 's/:/\n/g' |
+        xargs find 2>>/dev/null| grep $tool | awk '{printf("%s %s %s\n", "'$show_tag'", "'$tool'", $1)}'
+      $DOCKER_INSPECT -f {{.GraphDriver.Data.LowerDir}} $imageid | sed 's/:/\n/g' |
+              xargs find 2>>/dev/null| grep $tool | awk '{printf("%s %s %s\n", "'$show_tag'", "'$tool'", $1)}'
     done
+  done
+}
+
+function scan-fs() {
+  input_dir=$1
+  if [ "$input_dir" = "" ]; then
+    echo "Please input scan dir: ./image-check.sh fs ./images/"
+    exit 1
+  fi
+  tmp_parent_dir=$(dirname $input_dir)
+  tmp_dir=$tmp_parent_dir/$(basename $input_dir)_tmp
+  if [ ! -d $tmp_dir ]; then
+    mkdir -p $tmp_dir
+    echo "generated tmp_dir: $tmp_dir"
+  else
+    echo "tmp_dir already existed: $tmp_dir"
+  fi
+
+  # untar file to tmp_dir
+  untar-files $input_dir $tmp_dir
+}
+
+function untar-files() {
+  echo "untar-files"
+#  input=$1
+#  tmp_dir=$2
+#
+#  ext=.tar
+#  tar_files=$(find $input -name "*$ext" -type f)
+#  # shellcheck disable=SC2068
+#  for tar_file in ${tar_files[@]}; do
+#    #    echo $tar_file
+#    tar_file_dir=$tmp_dir/$(basename $tar_file $ext)
+#    if [ ! -d $tar_file_dir ]; then
+#      mkdir $tar_file_dir
+#    fi
+#
+#    tar -xf $tar_file -C $tar_file_dir
+#    echo "tar -xf $tar_file -C $tar_file_dir"
+#    echo $tar_file_dir
+#  done
+#
+#  ext=.tar.gz
+#  tar_files=$(find $input -name "*$ext" -type f)
+#  # shellcheck disable=SC2068
+#  for tar_file in ${tar_files[@]}; do
+#    #    echo $tar_file
+#    tar_file_dir=$tmp_dir/$(basename $tar_file $ext)
+#    if [ ! -d $tar_file_dir ]; then
+#      mkdir $tar_file_dir
+#    fi
+#
+#    tar -zxf $tar_file -C $tar_file_dir
+#    echo "tar -zxf $tar_file -C $tar_file_dir"
+#    echo $tar_file_dir
+#  done
+#
+#  ext=.tar
+#  while (("$(find $tmp_dir -name "*$ext" -type f | wc -l)" > 0)); do
+#    tar_files=$(find $tmp_dir -name "*$ext" -type f)
+#    # shellcheck disable=SC2068
+#    for tar_file in ${tar_files[@]}; do
+#      #      echo $tar_file
+#      tar_file_dir=$(dirname $tar_file)/$(basename $tar_file $ext)
+#      if [ ! -d $tar_file_dir ]; then
+#        mkdir $tar_file_dir
+#      fi
+#      tar -xf $tar_file -C $tar_file_dir
+#      echo "tar -xf $tar_file -C $tar_file_dir"
+#      rm $tar_file
+#    done
+#  done
+#
+#  ext=.tar.gz
+#  while (("$(find $tmp_dir -name "*$ext" -type f | wc -l)" > 0)); do
+#    tar_files=$(find $tmp_dir -name "*$ext" -type f)
+#    # shellcheck disable=SC2068
+#    for tar_file in ${tar_files[@]}; do
+#      #      echo $tar_file
+#      tar_file_dir=$(dirname $tar_file)/$(basename $tar_file $ext)
+#      if [ ! -d $tar_file_dir ]; then
+#        mkdir $tar_file_dir
+#      fi
+#      tar -zxf $tar_file -C $tar_file_dir
+#      echo "tar -zxf $tar_file -C $tar_file_dir"
+#      rm $tar_file
+#    done
+#  done
+}
+
+function scan-image() {
+  image=$1
+  output=$2
+  dirs=(
+    LowerDir
+    UpperDir
+  )
+  # shellcheck disable=SC2068
+  for dir in ${dirs[@]}; do
+    # shellcheck disable=SC1083
+      overlays=$($DOCKER_INSPECT -f {{.GraphDriver.Data.$dir}} $image 2>/dev/null| sed 's/:/\n/g' | sed 's/<no value>//g')
+    # shellcheck disable=SC2068
+    for overlay in ${overlays[@]}; do
+      if [ "$overlay" == "" ]; then
+        continue
+      fi
+      ret=$(trivy rootfs $overlay -q -f json)
+      results=$(echo $ret|jq .Results)
+      if [ "$results" != "null" ]; then
+        if [ "$(echo $results | jq '.[].Vulnerabilities')" != "null" ]; then
+          echo $results | jq '.[].Vulnerabilities | .[] | ["'$image'",.VulnerabilityID,.PkgName,.PkgPath,.CVSS.ghsa.V3Score,.CVSS.nvd.V3Score] | join(",")' | sed 's/\"//g' >> $output
+        fi
+      fi
+    done
+  done
+}
+
+function scan-cve() {
+  if [ ! -f "./images.txt" ]; then
+    echo "Please enter the image in ./images.txt."
+  fi
+  images=$(cat images.txt)
+  output=result.csv
+  echo "image,cve,pkg_name,pkg_path,ghsa_score,nvd_score" > $output
+  # shellcheck disable=SC2068
+  for image in ${images[@]}; do
+    $DOCKER_PULL -q $image
+    scan-image $image $output
   done
 }
 
@@ -369,6 +505,9 @@ function utils {
     scan-noowner $2
   elif [ "$CMD" = "compress" ]; then
     scan-compress
+  elif [ "$CMD" = "image" ]; then
+#    scan-fs $2
+    scan-cve $2
   elif [ "$CMD" = "clean" ]; then
     clean-image
   fi
