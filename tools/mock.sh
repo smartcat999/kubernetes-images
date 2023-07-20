@@ -109,7 +109,6 @@ metadata:
     kubernetes.io/arch: amd64
     kubernetes.io/hostname: $node
     kubernetes.io/os: linux
-    node-role.kubernetes.io/control-plane: ""
     node-role.kubernetes.io/worker: ""
     node.kubernetes.io/exclude-from-external-load-balancers: ""
     vnode: "mock"
@@ -122,6 +121,32 @@ EOF
 function delete-vnode() {
   message "delete-vnode"
   kubectl get nodes -l vnode=mock | awk '{if (NR>1) print $1}' | xargs kubectl delete node
+}
+
+function create-node() {
+  NODE=$1
+  USER=$2
+  HOST=$3
+  NODEGROUP=$4
+  RUNTIME=docker
+  ADD_DEFAULT_TAINT=true
+  message "create-node: $NODE($USER@$HOST)"
+  if [ "$MEMBER_CLUSTER" != "" ]; then
+    url="$KS_APISERVER/kapis/clusters/$MEMBER_CLUSTER/infra.edgewize.io/v1alpha1/nodes/join"
+  fi
+  url="$KS_APISERVER/kapis/infra.edgewize.io/v1alpha1/nodes/join"
+
+  command=$(curl "$url?node_name=$NODE&add_default_taint=$ADD_DEFAULT_TAINT&runtime=$RUNTIME" \
+    -H 'Accept: */*' \
+    -H 'Accept-Language: zh-CN,zh;q=0.9' \
+    -H 'Connection: keep-alive' \
+    -H "Authorization: Bearer $KS_TOKEN" \
+    -H 'content-type: application/json' \
+    --compressed \
+    --insecure)
+  echo $command
+
+  ssh $USER@$HOST "curl https://get.docker.com | bash"
 }
 
 function bind-nodegroup-namespace() {
@@ -246,8 +271,6 @@ status:
   storedVersions: []
 
 ---
-
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -345,8 +368,6 @@ status:
   storedVersions: []
 
 ---
-
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -404,6 +425,182 @@ spec:
         type: object
     served: true
     storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+EOF
+}
+
+function init-federated-crd() {
+  # init federatedtypeconfigs
+  cat <<EOF | kubectl apply -f -
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  name: federatedtypeconfigs.core.kubefed.io
+spec:
+  group: core.kubefed.io
+  names:
+    kind: FederatedTypeConfig
+    listKind: FederatedTypeConfigList
+    plural: federatedtypeconfigs
+    shortNames:
+    - ftc
+    singular: federatedtypeconfig
+  scope: Namespaced
+  versions:
+  - name: v1beta1
+    schema:
+      openAPIV3Schema:
+        description: "FederatedTypeConfig programs KubeFed to know about a single
+          API type - the \"target type\" - that a user wants to federate. For each
+          target type, there is a corresponding FederatedType that has the following
+          fields: \n - The \"template\" field specifies the basic definition of a
+          federated resource - The \"placement\" field specifies the placement information
+          for the federated   resource - The \"overrides\" field specifies how the
+          target resource should vary across   clusters."
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: FederatedTypeConfigSpec defines the desired state of FederatedTypeConfig.
+            properties:
+              federatedType:
+                description: Configuration for the federated type that defines (via
+                  template, placement and overrides fields) how the target type should
+                  appear in multiple cluster.
+                properties:
+                  group:
+                    description: Group of the resource.
+                    type: string
+                  kind:
+                    description: Camel-cased singular name of the resource (e.g. ConfigMap)
+                    type: string
+                  pluralName:
+                    description: Lower-cased plural name of the resource (e.g. configmaps).  If
+                      not provided, it will be computed by lower-casing the kind and
+                      suffixing an 's'.
+                    type: string
+                  scope:
+                    description: Scope of the resource.
+                    type: string
+                  version:
+                    description: Version of the resource.
+                    type: string
+                required:
+                - kind
+                - pluralName
+                - scope
+                - version
+                type: object
+              propagation:
+                description: Whether or not propagation to member clusters should
+                  be enabled.
+                type: string
+              statusCollection:
+                description: Whether or not Status object should be populated.
+                type: string
+              statusType:
+                description: Configuration for the status type that holds information
+                  about which type holds the status of the federated resource. If
+                  not provided, the group and version will default to those provided
+                  for the federated type api resource.
+                properties:
+                  group:
+                    description: Group of the resource.
+                    type: string
+                  kind:
+                    description: Camel-cased singular name of the resource (e.g. ConfigMap)
+                    type: string
+                  pluralName:
+                    description: Lower-cased plural name of the resource (e.g. configmaps).  If
+                      not provided, it will be computed by lower-casing the kind and
+                      suffixing an 's'.
+                    type: string
+                  scope:
+                    description: Scope of the resource.
+                    type: string
+                  version:
+                    description: Version of the resource.
+                    type: string
+                required:
+                - kind
+                - pluralName
+                - scope
+                - version
+                type: object
+              targetType:
+                description: The configuration of the target type. If not set, the
+                  pluralName and groupName fields will be set from the metadata.name
+                  of this resource. The kind field must be set.
+                properties:
+                  group:
+                    description: Group of the resource.
+                    type: string
+                  kind:
+                    description: Camel-cased singular name of the resource (e.g. ConfigMap)
+                    type: string
+                  pluralName:
+                    description: Lower-cased plural name of the resource (e.g. configmaps).  If
+                      not provided, it will be computed by lower-casing the kind and
+                      suffixing an 's'.
+                    type: string
+                  scope:
+                    description: Scope of the resource.
+                    type: string
+                  version:
+                    description: Version of the resource.
+                    type: string
+                required:
+                - kind
+                - pluralName
+                - scope
+                - version
+                type: object
+            required:
+            - federatedType
+            - propagation
+            - targetType
+            type: object
+          status:
+            description: FederatedTypeConfigStatus defines the observed state of FederatedTypeConfig
+            properties:
+              observedGeneration:
+                description: ObservedGeneration is the generation as observed by the
+                  controller consuming the FederatedTypeConfig.
+                format: int64
+                type: integer
+              propagationController:
+                description: PropagationController tracks the status of the sync controller.
+                type: string
+              statusController:
+                description: StatusController tracks the status of the status controller.
+                type: string
+            required:
+            - observedGeneration
+            - propagationController
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""
@@ -681,12 +878,22 @@ function delete-nodegroup-role() {
 }
 
 case "$1" in
-"create")
+init-crd)
+  init-crd
+  create-role-template
+  ;;
+init-node)
+  # shellcheck disable=SC2002
+  create-node "edgenode-$(cat /proc/sys/kernel/random/uuid  | md5sum |cut -c 1-9)" root 172.31.73.72
+#  create-node "edgenode-$(cat /proc/sys/kernel/random/uuid  | md5sum |cut -c 1-9)" root 172.31.73.180
+#  create-node "edgenode-$(cat /proc/sys/kernel/random/uuid  | md5sum |cut -c 1-9)" root 172.31.73.184
+  ;;
+create)
   init-crd
   create-role-template
   for ((i = 1; i < 10; i++)); do
     create-nodegroup nodegroup0$i
-    create-vnode vnode0$i
+#    create-vnode vnode0$i
   done
 
   for ((i = 1; i < 10; i++)); do
@@ -695,10 +902,10 @@ case "$1" in
     bind-nodegroup-node $cur_nodegroup vnode0$i
   done
   ;;
-"delete")
+delete)
   delete-nodegroup $2
   ;;
-"clean")
+clean)
   for ((i = 1; i < 10; i++)); do
     delete-nodegroup nodegroup0$i
   done
