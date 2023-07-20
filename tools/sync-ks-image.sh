@@ -16,6 +16,12 @@
 # 修改 ks-image.tmp 中对应的镜像地址，执行以下命令更新
 # 5. ./sync-ks-image.sh deploy
 
+# 导出k8s集群镜像
+# 6. ./sync-ks-image.sh export
+
+# 同步harbor镜像
+# 7. ./sync-ks-image.sh harbor
+
 if [[ ${debug:-flase} = "true" ]]; then
   set -x
 fi
@@ -215,6 +221,27 @@ eeooff
 #      "rm /home/service/$package && ssh root@$NODE 'rm $package'"
 }
 
+function export-harbor-images() {
+  images=(
+    osixia/openldap:1.3.0
+    kubesphere/openpitrix-jobs:v3.2.2
+    kubesphere/devops-apiserver:v3.3.2
+    kubesphere/devops-tools:v3.3.2
+    kubesphere/devops-controller:v3.3.2
+    kubesphere/builder-go:v3.2.0
+    kubesphere/builder-base:v3.2.2
+    kubesphere/builder-nodejs:v3.2.0
+    kubesphere/builder-maven:v3.2.0
+    kubesphere/builder-python:v3.2.0
+    jenkins/inbound-agent:4.10-2
+  )
+  # shellcheck disable=SC2068
+  for image in ${images[@]}; do
+    sudo docker pull $image && sudo docker tag $image harbor.wuxs.vip/$image && sudo docker push harbor.wuxs.vip/$image
+  done
+  sudo docker pull jenkins/jenkins:2.332.3 && sudo docker tag jenkins/jenkins:2.332.3 harbor.wuxs.vip/kubesphere/ks-jenkins:v3.3.0-2.319.1 && sudo docker push harbor.wuxs.vip/kubesphere/ks-jenkins:v3.3.0-2.319.1
+}
+
 if [ $CMD = "docker" ]; then
   sync-docker-harbor
 elif [ $CMD = "ali" ]; then
@@ -227,4 +254,6 @@ elif [ "$CMD" = "deploy" ]; then
   deploy-ks-image
 elif [ "$CMD" = "export" ]; then
   export-k8s-images
+elif [ "$CMD" = "harbor" ]; then
+  export-harbor-images
 fi
