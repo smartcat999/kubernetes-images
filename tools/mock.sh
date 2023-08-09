@@ -709,6 +709,23 @@ rules:
       - 'get'
       - 'list'
       - 'watch'
+  - apiGroups:
+      - 'iam.kubesphere.io'
+    resources:
+      - 'roles'
+      - 'members'
+    verbs:
+      - 'get'
+      - 'list'
+      - 'watch'
+  - apiGroups:
+      - 'monitoring.kubesphere.io'
+    resources:
+      - 'namespaces'
+    verbs:
+      - 'get'
+      - 'list'
+      - 'watch'
 ---
 apiVersion: iam.kubesphere.io/v1alpha2
 kind: NodeGroupRole
@@ -745,6 +762,19 @@ rules:
       - 'services'
     verbs:
       - '*'
+  - apiGroups:
+      - 'iam.kubesphere.io'
+    resources:
+      - 'roles'
+      - 'members'
+    verbs:
+      - '*'
+  - apiGroups:
+      - 'monitoring.kubesphere.io'
+    resources:
+      - 'namespaces'
+    verbs:
+      - '*'
 EOF
 
   # init RoleBase
@@ -777,6 +807,23 @@ role:
       resources:
         - 'namespaces'
         - 'services'
+      verbs:
+        - 'get'
+        - 'list'
+        - 'watch'
+    - apiGroups:
+        - 'iam.kubesphere.io'
+      resources:
+        - 'roles'
+        - 'members'
+      verbs:
+        - 'get'
+        - 'list'
+        - 'watch'
+    - apiGroups:
+        - 'monitoring.kubesphere.io'
+      resources:
+        - 'namespaces'
       verbs:
         - 'get'
         - 'list'
@@ -818,6 +865,70 @@ role:
         - 'services'
       verbs:
         - '*'
+    - apiGroups:
+        - 'iam.kubesphere.io'
+      resources:
+        - 'roles'
+        - 'members'
+      verbs:
+        - '*'
+    - apiGroups:
+        - 'monitoring.kubesphere.io'
+      resources:
+        - 'namespaces'
+      verbs:
+        - '*'
+EOF
+
+# init clusterrole
+cat <<EOF | kubectl --kubeconfig=wuhan1.vcluster.config apply -f -
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    kubesphere.io/creator: system
+    kubesphere.io/description: "查看集群中的节点组"
+    iam.kubesphere.io/aggregation-roles: '[]'
+  name: cluster-regular
+rules:
+- apiGroups:
+    - 'infra.edgewize.io'
+  resources:
+    - '*'
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - infra.kubesphere.io
+  resources:
+    - '*'
+  verbs:
+    - get
+    - list
+    - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    kubesphere.io/creator: system
+    kubesphere.io/description: "管理集群中的节点组"
+    iam.kubesphere.io/aggregation-roles: '[]'
+  name: cluster-self-provisioner
+rules:
+- apiGroups:
+    - 'infra.edgewize.io'
+  resources:
+    - '*'
+  verbs:
+    - '*'
+- apiGroups:
+    - infra.kubesphere.io
+  resources:
+    - '*'
+  verbs:
+    - '*'
 EOF
 }
 
