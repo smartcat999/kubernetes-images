@@ -128,7 +128,7 @@ cat >/etc/systemd/system/docker.service.d/proxy.conf <<EOF
 [Service]
 Environment="HTTP_PROXY=socks5://${LISTEN_ADDRESS}:${LISTEN_PORT}/"
 Environment="HTTPS_PROXY=socks5://${LISTEN_ADDRESS}:${LISTEN_PORT}/"
-Environment="NO_PROXY=localhost,127.0.0.0/8,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8"
+Environment="NO_PROXY=localhost,127.0.0.0/8,192.0.0.0/8,10.0.0.0/8"
 EOF
 
 if [ -d "$HOME/.docker/config.json" ]; then
@@ -145,7 +145,7 @@ else
         {
             "httpProxy": "http://172.31.189.234:1081",
             "httpsProxy": "http://172.31.189.234:1081",
-            "noProxy": "127.0.0.0/8,192.0.0.0/8,172.0.0.0/8,10.0.0.0/8,localhost"
+            "noProxy": "127.0.0.0/8,192.0.0.0/8,10.0.0.0/8,localhost"
         }
     }
 }
@@ -158,11 +158,11 @@ docker run --privileged --rm tonistiigi/binfmt --install all
 docker buildx create --name my-builder-proxy --bootstrap --use \
   --driver-opt env.http_proxy=socks5://${LISTEN_ADDRESS}:${LISTEN_PORT} \
   --driver-opt env.https_proxy=socks5://${LISTEN_ADDRESS}:${LISTEN_PORT} \
-  --driver-opt '"env.no_proxy='localhost,127.0.0.0/8,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8'"' \
+  --driver-opt '"env.no_proxy='localhost,127.0.0.0/8,192.0.0.0/8,10.0.0.0/8'"' \
   --driver-opt network=host
 
 #docker buildx create --name my-builder-proxy --bootstrap --use \
 #  --driver-opt env.http_proxy=socks5://127.0.01:1080 \
 #  --driver-opt env.https_proxy=socks5://127.0.01:1080 \
-#  --driver-opt '"env.no_proxy='localhost,127.0.0.0/8,172.0.0.0/8,192.0.0.0/8,10.0.0.0/8'"' \
+#  --driver-opt '"env.no_proxy='localhost,127.0.0.0/8,192.0.0.0/8,10.0.0.0/8'"' \
 #  --driver-opt network=host
