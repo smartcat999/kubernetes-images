@@ -7,6 +7,8 @@
 # crontab -e
 # 添加 */10 * * * * /bin/bash /opt/tasks/security-scan.sh
 
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+
 function check-modify-permission() {
   dir=$1
   file=$2
