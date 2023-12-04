@@ -33,7 +33,8 @@ if [ ${debug:-false} = true ]; then
   set -x
 fi
 
-target=${target:-172.31.50.147 172.31.50.148 172.31.50.149}
+target=${target:-172.31.50.140 172.31.50.141 172.31.50.142}
+root_dir=${1:-/root/}
 
 hostname=$(sh -c hostname)
 node_ip=$(kubectl get node -o wide | grep "$hostname" | awk '{print $6}')
@@ -47,7 +48,7 @@ for elem in ${target[@]}; do
   if [ "$elem" = "$node_ip" ]; then
     continue
   fi
-  scp -q image-scan.sh security-account.sh "root@$elem:/root/"
+  scp -q scan-image.sh security-account.sh "root@$elem:$root_dir"
 done
 
 function batch_run() {
@@ -61,53 +62,53 @@ function batch_run() {
 }
 
 function dump_privileged_containers {
-  ./image-scan.sh privileged
-  batch_run "/root/image-scan.sh privileged"
+  ./scan-image.sh privileged
+  batch_run "$root_dir/scan-image.sh privileged"
 }
 
 function dump_root_containers {
-  ./image-scan.sh root
-  batch_run "/root/image-scan.sh root"
+  ./scan-image.sh root
+  batch_run "$root_dir/scan-image.sh root"
 }
 
 function dump_tools_containers {
-  ./image-scan.sh tools
-  batch_run "/root/image-scan.sh tools"
+  ./scan-image.sh tools
+  batch_run "$root_dir/scan-image.sh tools"
 }
 
 function dump_envs_containers {
-  ./image-scan.sh env
-  batch_run "/root/image-scan.sh env"
+  ./scan-image.sh env
+  batch_run "$root_dir/scan-image.sh env"
 }
 
 function dump_permission_file_images {
-  ./image-scan.sh permission
-  batch_run "/root/image-scan.sh permission"
+  ./scan-image.sh permission
+  batch_run "$root_dir/scan-image.sh permission"
 }
 
 function dump_api_access_token_containers {
-  ./image-scan.sh token
-  batch_run "/root/image-scan.sh token"
+  ./scan-image.sh token
+  batch_run "$root_dir/scan-image.sh token"
 }
 
 function dump_openssl_containers {
-  ./image-scan.sh openssl
-  batch_run "/root/image-scan.sh openssl"
+  ./scan-image.sh openssl
+  batch_run "$root_dir/scan-image.sh openssl"
 }
 
 function dump_noowner_containers {
-  ./image-scan.sh noowner
-  batch_run "/root/image-scan.sh noowner"
+  ./scan-image.sh noowner
+  batch_run "$root_dir/scan-image.sh noowner"
 }
 
 function clean_image_unused() {
-  ./image-scan.sh clean
-  batch_run "/root/image-scan.sh clean"
+  ./scan-image.sh clean
+  batch_run "$root_dir/scan-image.sh clean"
 }
 
 function dump_system_account() {
   ./security-account.sh
-  batch_run "/root/security-account.sh"
+  batch_run "$root_dir/security-account.sh"
 }
 
 CMD=$1

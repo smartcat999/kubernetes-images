@@ -1,39 +1,39 @@
 #!/bin/bash
 
 # 1. 检查privileged特权容器
-# ./image-scan.sh privileged
+# ./scan-image.sh privileged
 
 # 2. 检查root用户容器
-# ./image-scan.sh root
+# ./scan-image.sh root
 
 # 3. 检查包含调试/嗅探工具的镜像
-# ./image-scan.sh tools
+# ./scan-image.sh tools
 
 # 4. 检查环境变量中含有敏感信息的容器
-# ./image-scan.sh env
+# ./scan-image.sh env
 
 # 5. 检查配置文件/证书文件权限不是600的镜像
-# ./image-scan.sh permission
+# ./scan-image.sh permission
 
 # 6. 检查挂载k8s token的容器
-# ./image-scan.sh token
+# ./scan-image.sh token
 
 # 7. 检查容器本身的证书私钥 以及 挂载的私钥是否加密
-# ./image-scan.sh openssl
+# ./scan-image.sh openssl
 
 # 8. 检查系统的无属组文件
 # 不传path默认扫描 / 目录下的文件，不扫描 /proc 和 /sys
-# ./image-scan.sh noowner ${path}
+# ./scan-image.sh noowner ${path}
 
 # 9. 镜像无用文件裁剪扫描
-# ./image-scan.sh compress
+# ./scan-image.sh compress
 
 # 10. 镜像cve扫描
 # 需要将待扫描的镜像清单写入 ./images.txt 中，每个镜像单独一行
-# ./image-scan.sh image
+# ./scan-image.sh image
 
 # 11. 清除无用镜像
-# ./image-scan.sh clean
+# ./scan-image.sh clean
 
 #set -x
 RUNTIME=${RUNTIME:-docker}
@@ -340,7 +340,7 @@ function scan-compress() {
 function scan-fs() {
   input_dir=$1
   if [ "$input_dir" = "" ]; then
-    echo "Please input scan dir: ./image-scan.sh fs ./images/"
+    echo "Please input scan dir: ./scan-image.sh fs ./images/"
     exit 1
   fi
   tmp_parent_dir=$(dirname $input_dir)
