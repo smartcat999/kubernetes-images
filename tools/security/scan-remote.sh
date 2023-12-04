@@ -34,7 +34,7 @@ if [ ${debug:-false} = true ]; then
 fi
 
 target=${target:-172.31.50.140 172.31.50.141 172.31.50.142}
-root_dir=${1:-/root/}
+root_dir=${root_dir:-/root/}
 
 hostname=$(sh -c hostname)
 node_ip=$(kubectl get node -o wide | grep "$hostname" | awk '{print $6}')
