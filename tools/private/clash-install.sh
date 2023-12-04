@@ -16,3 +16,19 @@ function download-clash() {
 download-clash linux amd64 $version
 download-clash linux arm64 $version
 download-clash linux armv7 $version
+
+cat >/usr/lib/systemd/system/clash.service<<EOF
+[Unit]
+Description=My Clash Service
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/root/clash-for-linux/start.sh
+ExecReload=/root/clash-for-linux/restart.sh
+ExecStop=/root/clash-for-linux/shutdown.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF

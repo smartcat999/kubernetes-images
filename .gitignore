@@ -3,6 +3,8 @@ dist/
 tmp/
 security-image/nodejs20/node/
 security-image/nodejs20/openssl/
-tools/security-cipher.sh
+tools/private/security-cipher.sh
 scan_117832/
 edge
+*.tar.gz
+tools/private/
