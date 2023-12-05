@@ -35,7 +35,9 @@
 # 11. 清除无用镜像
 # ./scan-image.sh clean
 
-#set -x
+if [[ ${debug:-flase} = "true" ]]; then
+  set -x
+fi
 RUNTIME=${RUNTIME:-docker}
 DOCKER_IMAGE_LS="docker image ls"
 DOCKER_PS="docker ps"
@@ -50,6 +52,7 @@ if [ $RUNTIME = "isula" ]; then
   DOCKER_INSPECT="isula inspect"
   DOCKER_EXEC="isula exec"
   DOCKER_RMI="isula rmi"
+  DOCKER_PULL="isula pull"
 fi
 
 function scan-privileged() {
@@ -434,7 +437,7 @@ function scan-image() {
   # shellcheck disable=SC2068
   for dir in ${dirs[@]}; do
     # shellcheck disable=SC1083
-      overlays=$($DOCKER_INSPECT -f {{.GraphDriver.Data.$dir}} $image 2>/dev/null| sed 's/:/\n/g' | sed 's/<no value>//g')
+    overlays=$($DOCKER_INSPECT -f {{.GraphDriver.Data.$dir}} $image 2>/dev/null| sed 's/:/\n/g' | sed 's/<no value>//g')
     # shellcheck disable=SC2068
     for overlay in ${overlays[@]}; do
       if [ "$overlay" == "" ]; then
@@ -454,15 +457,17 @@ function scan-image() {
 function scan-cve() {
   if [ ! -f "./images.txt" ]; then
     echo "Please enter the image in ./images.txt."
+    exit 1
   fi
   images=$(cat images.txt)
   output=result.csv
   echo "image,cve,pkg_name,pkg_path,ghsa_score,nvd_score" > $output
   # shellcheck disable=SC2068
   for image in ${images[@]}; do
-    $DOCKER_PULL -q $image
+    $DOCKER_PULL $image
     scan-image $image $output
   done
+  cat $output
 }
 
 function clean-image() {
@@ -511,6 +516,7 @@ function utils {
   elif [ "$CMD" = "clean" ]; then
     clean-image
   fi
+  echo "Finish scan $CMD"
 }
 
 utils $1 $2

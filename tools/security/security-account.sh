@@ -27,6 +27,7 @@ function export-system-account() {
     # shellcheck disable=SC2028
     echo "$username,$passwd,$effect,$shell,$home_dir,$status,$login,$remark" >>$file
   done </etc/passwd
+  cat $file
 }
 
 function export-container-account() {
@@ -35,8 +36,20 @@ function export-container-account() {
   tmp_user_file=./tmp_user.txt
   tmp_shadow_file=./tmp_shadow.txt
   # shellcheck disable=SC2038
-  find /var/lib/docker/isulad/storage/overlay/ -name "passwd" | grep /etc/passwd | xargs -I {} cat {} | sort | uniq >$tmp_user_file
-  find /var/lib/docker/isulad/storage/overlay/ -name "shadow" | grep /etc/shadow | xargs -I {} cat {} | sort | uniq >$tmp_shadow_file.tmp
+  dirs=(
+    /var/lib/docker/overlay2
+    /var/lib/isulad/storage/overlay
+    /var/lib/docker/isulad/storage/overlay
+  )
+  # shellcheck disable=SC2068
+  for dir in ${dirs[@]}; do
+    if [ -d $dir ]; then
+      find $dir -name "passwd" | grep /etc/passwd | xargs -I {} cat {} | sort | uniq >$tmp_user_file
+      find $dir -name "shadow" | grep /etc/shadow | xargs -I {} cat {} | sort | uniq >$tmp_shadow_file.tmp
+    fi
+  done
+#  find /var/lib/docker/isulad/storage/overlay/ -name "passwd" | grep /etc/passwd | xargs -I {} cat {} | sort | uniq >$tmp_user_file
+#  find /var/lib/docker/isulad/storage/overlay/ -name "shadow" | grep /etc/shadow | xargs -I {} cat {} | sort | uniq >$tmp_shadow_file.tmp
   cat /etc/shadow >>$tmp_shadow_file.tmp
   cat $tmp_shadow_file.tmp | sort | uniq >$tmp_shadow_file
   rm $tmp_shadow_file.tmp
@@ -63,6 +76,7 @@ function export-container-account() {
     echo "$username,$passwd,$effect,$shell,$home_dir,$status,$login,$remark" >>$file
   done <$tmp_user_file
   rm $tmp_user_file $tmp_shadow_file
+  cat $file
 }
 
 export-system-account
