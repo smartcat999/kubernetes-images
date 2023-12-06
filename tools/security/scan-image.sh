@@ -447,7 +447,7 @@ function scan-image() {
       results=$(echo $ret|jq .Results)
       if [ "$results" != "null" ]; then
         if [ "$(echo $results | jq '.[].Vulnerabilities')" != "null" ]; then
-          echo $results | jq '.[].Vulnerabilities | .[] | ["'$image'",.VulnerabilityID,.PkgName,.PkgPath,.CVSS.ghsa.V3Score,.CVSS.nvd.V3Score] | join(",")' | sed 's/\"//g' >> $output
+          echo $results | jq '.[]|select(.Vulnerabilities|length >0) | .Vulnerabilities | .[] | ["'$image'",.VulnerabilityID,.PkgName,.PkgPath,.CVSS.ghsa.V3Score,.CVSS.nvd.V3Score] | join(",")' | sed 's/\"//g' >> $output
         fi
       fi
     done
