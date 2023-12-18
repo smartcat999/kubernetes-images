@@ -6,7 +6,7 @@ body:
     id: KseVersion
     attributes:
       label: Version of kse
-      description: What version of kse software are you need?
+      description: What version of kse are you need?
       multiple: false
       options:
         - v3.3
