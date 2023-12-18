@@ -1,0 +1,34 @@
+name: KseDocs
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  KseDocsBuidler:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Download dependencies
+        run: |
+          echo {{github.event.issue}}
+#          npm i
+      - name: Set env
+        run: |
+          echo {{github.event.issue}}
+#          export KUBESPHERE={{github.event.issue}}
+#          export KUBERNETES={{github.event.issue}}
+      - id: build-docs
+        name: build docs for kse && kubernetes
+        run:
+          echo {{github.event.issue}}

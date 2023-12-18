@@ -1,0 +1,36 @@
+name: Kse Docs Build
+description: Generate docs for kse
+title: "[Docs] <kse>"
+body:
+  - type: dropdown
+    id: KseVersion
+    attributes:
+      label: KseVersion
+      description: What version of kse software are you need?
+      multiple: false
+      options:
+        - v3.3 (Default)
+        - v3.4
+        - v3.5
+        - v4.0
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: KubernetesVersion
+    attributes:
+      label: KubernetesVersion
+      description: What version of kubernetes are you need?
+      multiple: false
+      options:
+        - v1.21
+        - v1.22
+        - v1.23
+        - v1.24
+        - v1.25
+        - v1.26
+        - v1.27
+        - v1.28
+      default: 0
+    validations:
+      required: true
