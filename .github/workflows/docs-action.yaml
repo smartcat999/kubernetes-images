@@ -18,7 +18,7 @@ jobs:
       - name: Set env
         run: |
           KUBESPHERE=$(echo "${{github.event.issue.body}}" | grep -A 2 kseVersion | grep '^v')
-          KUBERNETES=$(echo ${{github.event.issue.body}} | grep -A 2 KubernetesVersion | grep '^v')
+          KUBERNETES=$(echo "${{github.event.issue.body}}" | grep -A 2 KubernetesVersion | grep '^v')
           echo "KUBESPHERE=$KUBESPHERE" >> $GITHUB_ENV
           echo "KUBERNETES=$KUBERNETES" >> $GITHUB_ENV
           echo $KUBESPHERE
