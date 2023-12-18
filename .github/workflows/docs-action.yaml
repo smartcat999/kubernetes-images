@@ -17,8 +17,10 @@ jobs:
         uses: actions/checkout@v3
       - name: Set env
         run: |
-          echo "KUBESPHERE=$(echo ${{github.event.issue.body}} | grep -A 2 kseVersion | grep '^v')" >> $GITHUB_ENV
-          echo "KUBERNETES=$(echo ${{github.event.issue.body}} | grep -A 2 KubernetesVersion | grep '^v')" >> $GITHUB_ENV
+          KUBESPHERE=$(echo "${{github.event.issue.body}}" | grep -A 2 kseVersion | grep '^v')
+          KUBERNETES=$(echo ${{github.event.issue.body}} | grep -A 2 KubernetesVersion | grep '^v')
+          echo "KUBESPHERE=$KUBESPHERE" >> $GITHUB_ENV
+          echo "KUBERNETES=$KUBERNETES" >> $GITHUB_ENV
           echo $KUBESPHERE
           echo $KUBERNETES
           
