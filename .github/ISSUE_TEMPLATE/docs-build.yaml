@@ -9,7 +9,7 @@ body:
       description: What version of kse software are you need?
       multiple: false
       options:
-        - v3.3 (Default)
+        - v3.3
         - v3.4
         - v3.5
         - v4.0

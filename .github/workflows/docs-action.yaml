@@ -21,14 +21,14 @@ jobs:
           node-version: '14'
       - name: Download dependencies
         run: |
-          echo {{github.event.issue}}
+          echo ${{github.event.issue}}
 #          npm i
       - name: Set env
         run: |
-          echo {{github.event.issue}}
+          echo ${{github.event.issue}}
 #          export KUBESPHERE={{github.event.issue}}
 #          export KUBERNETES={{github.event.issue}}
       - id: build-docs
         name: build docs for kse && kubernetes
         run:
-          echo {{github.event.issue}}
+          echo ${{github.event.issue}}
