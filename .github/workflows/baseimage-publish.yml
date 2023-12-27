@@ -91,8 +91,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and push Docker image -- nodejs21
-        id: build-and-push-static-debian12
+      - name: Build and push Docker image -- nodejs21-alpine
+        id: build-and-push-nodejs21-alpine
         uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
         with:
           context: ./base-image/nodejs21/
