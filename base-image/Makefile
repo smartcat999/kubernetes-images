@@ -22,5 +22,8 @@ build-static-debian12:
 build-static-debian11:
 	docker buildx build -f ./distroless/static-debian11/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/static-debian11:${EDGE_TAG} ./distroless/static-debian11/
 
+build-base-nossl-debian11:
+	docker buildx build -f ./distroless/base-nossl-debian11/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/base-nossl-debian11:${EDGE_TAG} ./distroless/base-nossl-debian11/
+
 build-ubi8:
 	docker buildx build -f ./ubi/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/ubi8:${EDGE_TAG} ./ubi
