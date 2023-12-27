@@ -7,6 +7,9 @@ EDGE_TAG ?= edge
 build-alpine-edge:
 	docker buildx build -f ./alpine/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/alpine:${EDGE_TAG} ./alpine/
 
+build-nodejs21-alpine:
+	docker buildx build -f ./nodejs21/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/nodejs21-alpine:${EDGE_TAG} ./nodejs21/
+
 build-nodejs20-debian12:
 	docker buildx build -f ./distroless/nodejs20/Dockerfile --platform linux/amd64,linux/arm64 --push -t ${REPO}/nodejs20-debian12:${EDGE_TAG} ./distroless/nodejs20/
 
