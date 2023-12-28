@@ -23,4 +23,6 @@ jobs:
           echo "KUBERNETES=$KUBERNETES" >> $GITHUB_ENV
           echo $KUBESPHERE
           echo $KUBERNETES
+          echo "${{ env.KUBESPHERE }}"
+          echo "${{ env.KUBESPHERE }}"
           
