@@ -23,6 +23,9 @@ jobs:
           echo "KUBESPHERE=$KUBESPHERE" >> $GITHUB_ENV
           echo "KUBERNETES=$KUBERNETES" >> $GITHUB_ENV
           echo "PACKAGE=$PACKAGE" >> $GITHUB_ENV
+          echo $KUBESPHERE
+          echo $KUBERNETES
+          echo $PACKAGE
       - name: Test env
         run: |
           echo "${{ env.KUBERNETES }}"
