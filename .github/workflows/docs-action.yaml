@@ -19,10 +19,27 @@ jobs:
         run: |
           KUBESPHERE=$(echo "${{github.event.issue.body}}" | grep -A 2 KseVersion | grep '^v')
           KUBERNETES=$(echo "${{github.event.issue.body}}" | grep -A 2 KubernetesVersion | grep '^v')
+          PACKAGE=$(if [ "$KUBESPHERE" ！= "" ]&&[ "$KUBERNETES" = "" ];then echo "kubesphere-$KUBESPHERE";elif ["$KUBESPHERE" = "" ]&&[ "$KUBERNETES" != "" ];then echo "kubernetes-$KUBERNETES";elif ["$KUBESPHERE" != "" ]&&[ "$KUBERNETES" != "" ];then echo "kubesphere-$KUBESPHERE-kubernetes-$KUBERNETES";else echo "kubesphere";fi)
           echo "KUBESPHERE=$KUBESPHERE" >> $GITHUB_ENV
           echo "KUBERNETES=$KUBERNETES" >> $GITHUB_ENV
+          echo "PACKAGE=$PACKAGE" >> $GITHUB_ENV
       - name: Test env
         run: |
           echo "${{ env.KUBERNETES }}"
           echo "${{ env.KUBESPHERE }}"
-          
+          echo "${{ env.PACKAGE }}"
+      - name: Build package
+        id: build-package
+        run: |
+          echo "package" >> sample.txt
+          tar -zcvf {{ env.PACKAGE }}.tar.gz sample.txt
+      - name: Upload Release
+        id: upload-release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            {{ env.PACKAGE }}.tar.gz
+      - name: Get Download Url
+        id: get-download-url
+        run: |
+          echo "${{ fromJSON(steps.upload-release.outputs.assets)[0].browser_download_url }}"
