@@ -31,14 +31,14 @@ jobs:
         id: build-package
         run: |
           echo "package" >> sample.txt
-          tar -zcvf "{{ env.PACKAGE }}.tar.gz" sample.txt
+          tar -zcvf ${{ env.PACKAGE }}.tar.gz sample.txt
       - name: Upload Release
         id: upload-release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.PACKAGE }}
           files: |
-            {{ env.PACKAGE }}.tar.gz
+            ${{ env.PACKAGE }}.tar.gz
       - name: Get Download Url
         id: get-download-url
         run: |
