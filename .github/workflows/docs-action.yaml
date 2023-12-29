@@ -17,8 +17,8 @@ jobs:
       - name: Set env
         run: |
           echo "${{github.event.issue.body}}" >> version
-          KUBESPHERE=$(cat version | grep kse-v | awk -F'-' '{if(NR==1) print $2}' | tr -d '\n')
-          KUBERNETES=$(cat version | grep kubernetes-v | awk -F'-' '{if(NR==1) print $2}' | tr -d '\n')
+          KUBESPHERE=$(cat version | grep kse-v | awk -F'-' '{if(NR==1) print $2}' | tr -d '\n\t\r ')
+          KUBERNETES=$(cat version | grep kubernetes-v | awk -F'-' '{if(NR==1) print $2}' | tr -d '\n\t\r ')
           PACKAGE=$(if [ "$KUBESPHERE" != "" ] && [ "$KUBERNETES" = "" ];then echo -n "kubesphere-$KUBESPHERE";elif [ "$KUBESPHERE" = "" ] && [ "$KUBERNETES" != "" ];then echo -n "kubernetes-$KUBERNETES";elif [ "$KUBESPHERE" != "" ] && [ "$KUBERNETES" != "" ];then echo -n "kubesphere-$KUBESPHERE-kubernetes-$KUBERNETES";else echo -n "kubesphere"; fi)
           echo "KUBESPHERE=$KUBESPHERE" >> $GITHUB_ENV
           echo "KUBERNETES=$KUBERNETES" >> $GITHUB_ENV
