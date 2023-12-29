@@ -32,7 +32,7 @@ jobs:
         id: build-package
         run: |
           echo "package" >> sample.txt
-          tar -zcvf {{ env.PACKAGE }}.tar.gz sample.txt
+          tar -zcvf "{{ env.PACKAGE }}.tar.gz" sample.txt
       - name: Upload Release
         id: upload-release
         uses: softprops/action-gh-release@v1
