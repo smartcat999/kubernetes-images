@@ -16,8 +16,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Set env
         run: |
-          KUBESPHERE=$(echo -n $(echo "${{github.event.issue.body}}" | grep kse-v | awk -F'-' '{if(NR==1) print $2}'))
-          KUBERNETES=$(echo -n $(echo "${{github.event.issue.body}}" | grep kubernetes-v | awk -F'-' '{if(NR==1) print $2}'))
+          KUBESPHERE=$(echo -n $(echo "${{github.event.issue.body}}" | grep -Eo '^kse-v.*[0-9]$' | awk -F'-' '{if(NR==1) print $2}'))
+          KUBERNETES=$(echo -n $(echo "${{github.event.issue.body}}" | grep -Eo '^kubernetes-v.*[0-9]$' | awk -F'-' '{if(NR==1) print $2}'))
           PACKAGE=$(if [ "$KUBESPHERE" != "" ] && [ "$KUBERNETES" = "" ];then echo "kubesphere-$KUBESPHERE";elif [ "$KUBESPHERE" = "" ] && [ "$KUBERNETES" != "" ];then echo "kubernetes-$KUBERNETES";elif [ "$KUBESPHERE" != "" ] && [ "$KUBERNETES" != "" ];then echo "kubesphere-$KUBESPHERE-kubernetes-$KUBERNETES";else echo "kubesphere"; fi)
           echo "KUBESPHERE=$KUBESPHERE" >> $GITHUB_ENV
           echo "KUBERNETES=$KUBERNETES" >> $GITHUB_ENV
