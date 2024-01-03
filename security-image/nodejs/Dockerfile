@@ -1,8 +1,8 @@
 FROM alpine:edge as openssl
 
-ENV OPENSSL_VERSION openssl-3.1.0+quic
-ENV NODE_VERSION 20.2.0
-ENV NODE_BRANCH v20.x
+ENV OPENSSL_VERSION openssl-3.1.4-quic1
+ENV NODE_VERSION 21.5.0
+ENV NODE_BRANCH main
 
 WORKDIR /tmp
 
@@ -63,7 +63,7 @@ FROM alpine:edge as base
 
 COPY --from=openssl /tmp/node /tmp/node
 
-ENV NODE_VERSION 20.2.0
+ENV NODE_VERSION 21.5.0
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
     && addgroup -g 1000 node \
@@ -187,7 +187,7 @@ CMD [ "node" ]
 
 FROM scratch
 
-ENV NODE_VERSION 20.2.0
+ENV NODE_VERSION 21.5.0
 
 COPY --from=base / /
 

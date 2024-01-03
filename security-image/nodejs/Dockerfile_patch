@@ -1,0 +1,13 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} as base
+
+RUN npm uninstall -g npm
+
+
+FROM scratch
+
+COPY --from=base / /
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+CMD [ "node" ]
