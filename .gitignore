@@ -1,8 +1,8 @@
 .idea
 dist/
 tmp/
-security-image/nodejs20/node/
-security-image/nodejs20/openssl/
+security-image/nodejs/node/
+security-image/nodejs/openssl/
 tools/private/security-cipher.sh
 scan_117832/
 edge
