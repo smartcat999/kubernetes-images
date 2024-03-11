@@ -6,8 +6,7 @@ ENV NODE_BRANCH main
 
 WORKDIR /tmp
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
-    && apk add git openssh perl perl-text-template nasm \
+RUN apk add git openssh perl perl-text-template nasm \
     && apk add --no-cache libstdc++ \
     && apk add --no-cache --virtual .build-deps curl \
     && git config --global user.email "smartcat999@example.com" \
@@ -55,8 +54,7 @@ COPY --from=openssl /tmp/node /tmp/node
 
 ENV NODE_VERSION 21.5.0
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
-    && apk update \
+RUN apk update \
 #    && addgroup -g 1000 node \
 #    && adduser -u 1000 -G node -s /bin/sh -D node \
     && apk add --no-cache \
