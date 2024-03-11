@@ -14,17 +14,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && git config --global user.name "smartcat999"
 
 RUN ARCH= && alpineArch="$(apk --print-arch)" \
-      && case "${alpineArch##*-}" in \
-        x86_64) \
-          ARCH='x64' \
-          CHECKSUM="8a637ef2fbac8c50b08129b8cbd80a8175a3d6c8b06615de100170d795af8668" \
-          ;; \
-        *) ;; \
-      esac \
-  && if [ -n "${CHECKSUM}" ]; then \
-    echo "pass"; \
-  else \
-    echo "Building from source" \
+    && apk update \
+    && echo "Building from source" \
     # backup build
     && apk add --no-cache --virtual .build-deps-full \
         binutils-gold \
@@ -38,8 +29,7 @@ RUN ARCH= && alpineArch="$(apk --print-arch)" \
     && git clone https://github.com/nodejs/node.git \
     && cd node  \
     && git checkout ${NODE_BRANCH} \
-    && cd ..; \
-  fi
+    && cd ..
 
 RUN git clone https://github.com/quictls/openssl  \
     && cd openssl  \
@@ -66,29 +56,13 @@ COPY --from=openssl /tmp/node /tmp/node
 ENV NODE_VERSION 21.5.0
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
-    && addgroup -g 1000 node \
-    && adduser -u 1000 -G node -s /bin/sh -D node \
+    && apk update \
+#    && addgroup -g 1000 node \
+#    && adduser -u 1000 -G node -s /bin/sh -D node \
     && apk add --no-cache \
         libstdc++ \
-    && apk add --no-cache --virtual .build-deps \
-        curl \
-    && ARCH= && alpineArch="$(apk --print-arch)" \
-      && case "${alpineArch##*-}" in \
-        x86_64) \
-          ARCH='x64' \
-          CHECKSUM="8a637ef2fbac8c50b08129b8cbd80a8175a3d6c8b06615de100170d795af8668" \
-          ;; \
-        *) ;; \
-      esac \
-  && if [ -n "${CHECKSUM}" ]; then \
-    set -eu; \
-    curl -fsSLO --compressed "https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz"; \
-    echo "$CHECKSUM  node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" | sha256sum -c - \
-      && tar -xJf "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
-      && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
-      && rm -f "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz"; \
-  else \
-    echo "Building from source" \
+    && apk add --no-cache --virtual .build-deps curl \
+    && echo "Building from source" \
     # backup build
     && apk add --no-cache --virtual .build-deps-full \
         binutils-gold \
@@ -99,39 +73,12 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
         linux-headers \
         make \
         python3 \
-    # gpg keys listed at https://github.com/nodejs/node#release-keys
-#    && for key in \
-#      4ED778F539E3634C779C87C6D7062848A1AB005C \
-#      141F07595B7B3FFE74309A937405533BE57C7D57 \
-#      74F12602B6F1C4E913FAA37AD3A89613643B6201 \
-#      DD792F5973C6DE52C432CBDAC77ABFA00DDBF2B7 \
-#      61FC681DFB92A079F1685E77973F295594EC4689 \
-#      8FCCA13FEF1D0C2E91008E09770F7A9A5AE15600 \
-#      C4F0DFFF4E8C1A8236409D08E73BC641CC11F4C8 \
-#      890C08DB8579162FEE0DF9DB8BEAB4DFCF555EF4 \
-#      C82FA3AE1CBEDC6BE46B9360C43CEC45C17AB93C \
-#      108F52B48DB57BB0CC439B2997B01419BD92F80A \
-#    ; do \
-#      gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$key" || \
-#      gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key" ; \
-#    done \
-#    && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION.tar.xz" \
-#    && curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc" \
-#    && gpg --batch --decrypt --output SHASUMS256.txt SHASUMS256.txt.asc \
-#    && grep " node-v$NODE_VERSION.tar.xz\$" SHASUMS256.txt | sha256sum -c - \
-#    && tar -xf "node-v$NODE_VERSION.tar.xz" \
-#    && cd "node-v$NODE_VERSION" \
     && cd /tmp/node \
     && ./configure \
     && make -j$(getconf _NPROCESSORS_ONLN) V= \
     && make install \
     && apk del .build-deps-full \
-    && cd ..; \
-    #&& rm -rf "node-v$NODE_VERSION" \
-    #&& rm "node-v$NODE_VERSION.tar.xz"; \
-#    && rm "node-v$NODE_VERSION.tar.xz" SHASUMS256.txt.asc SHASUMS256.txt; \
-  fi \
-  #&& rm -f "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" \
+    && cd .. \
   && apk del .build-deps \
   # smoke tests
   && node --version \
