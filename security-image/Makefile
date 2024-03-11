@@ -17,10 +17,10 @@ build-nodejs-local-amd64:
 
 build-nodejs-local-arm64:
 	#docker buildx build -f ./nodejs/Dockerfile_common --platform linux/arm64 --push -t ${REPO}/nodejs:${EDGE_TAG} ./nodejs/
-	docker build -f ./nodejs/Dockerfile_common --platform linux/arm64 --push -t ${REPO}/nodejs:${EDGE_TAG} ./nodejs/
+	docker buildx build -f ./nodejs/Dockerfile_common --platform linux/arm64 --push -t ${REPO}/nodejs:${EDGE_TAG} ./nodejs/
 
 build-nodejs-local-patch-arm64:
-	docker build -f ./nodejs/Dockerfile_patch --platform linux/arm64 --build-arg BASE_IMAGE=${REPO}/nodejs:edge  --push -t ${REPO}/nodejs:${EDGE_TAG}-patch ./nodejs/
+	docker buildx build -f ./nodejs/Dockerfile_patch --platform linux/arm64 --build-arg BASE_IMAGE=${REPO}/nodejs:edge  --push -t ${REPO}/nodejs:${EDGE_TAG}-patch ./nodejs/
 
 build-nodejs20-multi-platform:
 	docker buildx build -f ./nodejs20/Dockerfile_common --platform linux/amd64,linux/arm64 --push -t ${REPO}/nodejs20:${EDGE_TAG} ./nodejs20/
