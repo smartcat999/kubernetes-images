@@ -40,7 +40,7 @@ jobs:
           username: ${{ vars.DOCKER_USER }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build and push Docker image -- alpine
+      - name: Build and push Docker image
         id: build-and-push-alpine
         uses: docker/build-push-action@v5
         with:
