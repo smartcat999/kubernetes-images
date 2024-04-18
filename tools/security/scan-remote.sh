@@ -33,8 +33,8 @@ if [ ${debug:-false} = true ]; then
   set -x
 fi
 
-target=${target:-172.31.50.140 172.31.50.141 172.31.50.142}
-root_dir=${root_dir:-/root/}
+target=${target:-172.31.0.11 172.31.0.12 172.31.0.13 172.31.0.14 172.31.0.15 172.31.0.16 172.31.0.17 172.31.0.18 172.31.0.19}
+root_dir=${root_dir:-/root/security}
 
 hostname=$(sh -c hostname)
 node_ip=$(kubectl get node -o wide | grep "$hostname" | awk '{print $6}')
@@ -58,6 +58,16 @@ function batch_run() {
       continue
     fi
     ssh -q "root@$elem" $1
+  done
+}
+
+function copy_ssh_id() {
+  # shellcheck disable=SC2068
+  for elem in ${target[@]}; do
+    if [ "$elem" = "$node_ip" ]; then
+      continue
+    fi
+    ssh-copy-id root@$elem
   done
 }
 
@@ -101,6 +111,26 @@ function dump_noowner_containers {
   batch_run "$root_dir/scan-image.sh noowner"
 }
 
+function dump_security_context {
+  ./scan-image.sh security_context
+  batch_run "$root_dir/scan-image.sh security_context"
+}
+
+function dump_host_network {
+  ./scan-image.sh host_network
+  batch_run "$root_dir/scan-image.sh host_network"
+}
+
+function dump_host_pid {
+  ./scan-image.sh host_pid
+  batch_run "$root_dir/scan-image.sh host_pid"
+}
+
+function dump_uts_ns {
+  ./scan-image.sh uts_ns
+  batch_run "$root_dir/scan-image.sh uts_ns"
+}
+
 function clean_image_unused() {
   ./scan-image.sh clean
   batch_run "$root_dir/scan-image.sh clean"
@@ -112,8 +142,9 @@ function dump_system_account() {
 }
 
 CMD=$1
-
-if [ "$CMD" = "root" ]; then
+if [ "$CMD" = "copy_id" ]; then
+  copy_ssh_id
+elif [ "$CMD" = "root" ]; then
   dump_root_containers
 elif [ "$CMD" = "tools" ]; then
   dump_tools_containers
@@ -121,12 +152,20 @@ elif [ "$CMD" = "env" ]; then
   dump_envs_containers
 elif [ "$CMD" = "permission" ]; then
   dump_permission_file_images
-elif [ "$CMD" = "token" ]; then
+  elif [ "$CMD" = "token" ]; then
   dump_api_access_token_containers
 elif [ "$CMD" = "openssl" ]; then
   dump_openssl_containers
 elif [ "$CMD" = "noowner" ]; then
   dump_noowner_containers
+elif [ "$CMD" = "security_context" ]; then
+  dump_security_context
+elif [ "$CMD" = "host_network" ]; then
+  dump_host_network
+elif [ "$CMD" = "host_pid" ]; then
+  dump_host_pid
+elif [ "$CMD" = "uts_ns" ]; then
+  dump_uts_ns
 elif [ "$CMD" = "account" ]; then
   dump_system_account
 elif [ "$CMD" = "clean" ]; then

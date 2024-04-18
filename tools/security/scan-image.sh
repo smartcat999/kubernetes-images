@@ -35,10 +35,14 @@
 # 11. 清除无用镜像
 # ./scan-image.sh clean
 
+# 12. 扫描securityContext
+# ./scan-image.sh security_context
+
+
 if [[ ${debug:-flase} = "true" ]]; then
   set -x
 fi
-RUNTIME=${RUNTIME:-docker}
+RUNTIME=${RUNTIME:-isula}
 DOCKER_IMAGE_LS="docker image ls"
 DOCKER_PS="docker ps"
 DOCKER_INSPECT="docker inspect"
@@ -55,11 +59,11 @@ if [ $RUNTIME = "isula" ]; then
   DOCKER_PULL="isula pull"
 fi
 
-function scan-privileged() {
+function scan_privileged() {
   $DOCKER_PS --quiet -a | xargs $DOCKER_INSPECT --format='{{index .RepoTags 0}} {{.HostConfig.Privileged}}' 2>/dev/null | grep true | awk '{print $1}'
 }
 
-function scan-root() {
+function scan_root() {
   containers=$($DOCKER_PS | awk 'NR!=1 {print $1}')
   # shellcheck disable=SC2154
   #  echo $containers
@@ -91,7 +95,7 @@ function scan-root() {
   done
 }
 
-function scan-tools() {
+function scan_tools() {
   output="${1:-tools.txt}"
   # tools=("tcpdump" "sniffer" "wireshark" "Netcat" "gdb" "strace" "readelf" "cpp" "gcc" "dexdump" "mirror" "JDK" "netcat")
   tools=("tcpdump" "sniffer" "wireshark" "Netcat" "strace" "readelf" "Nmap" "gdb" "cpp" "gcc" "jdk" "javac" "make" "binutils" "flex" "glibc-devel" "gcc-c++" "Id" "lex" "rpcgen" "objdump" "eu-readelf" "eu-objdump" "dexdump" "mirror" "lua" "Perl")
@@ -152,7 +156,7 @@ function scan-tools() {
   echo "output: $output"
 }
 
-function scan-env() {
+function scan_env() {
   containers=$($DOCKER_PS | awk 'NR!=1 {print $1}')
   # shellcheck disable=SC2068
   for container in ${containers[@]}; do
@@ -183,7 +187,7 @@ function scan-env() {
   done
 }
 
-function scan-permission() {
+function scan_permission() {
   output="${1:-permission.txt}"
   hostname=$(sh -c hostname)
   images=$($DOCKER_IMAGE_LS | awk 'NR!=1 {print $3}')
@@ -224,7 +228,7 @@ function scan-permission() {
   echo "output: $output"
 }
 
-function scan-token() {
+function scan_token() {
   token_dirs=$(find / -name "kube-api-access-*" 2>/dev/null)
   hostname=$(sh -c hostname)
   node_ip=$(kubectl get node -o wide | awk '{if (NR==2){print $6}}')
@@ -245,7 +249,7 @@ function scan-token() {
   done
 }
 
-function scan-openssl() {
+function scan_openssl() {
   hostname=$(sh -c hostname)
   echo " hostname | image | tag | container | file"
   containers=$($DOCKER_PS | awk 'NR!=1 {print $1}')
@@ -312,13 +316,13 @@ function scan-openssl() {
   done
 }
 
-function scan-noowner() {
+function scan_noowner() {
   dir=${1:-/}
   # shellcheck disable=SC2038
   find $dir -xdev \( -nouser -o -nogroup \) \( ! -path "/proc" -o ! -path "/sys" \) -type f -print | xargs -I {} ls -l {}
 }
 
-function scan-compress() {
+function scan_compress() {
   imageids=$($DOCKER_IMAGE_LS | awk 'NR!=1 {print $3}')
   hostname=$(sh -c hostname)
   # shellcheck disable=SC2068
@@ -454,7 +458,7 @@ function scan-image() {
   done
 }
 
-function scan-cve() {
+function scan_cve() {
   if [ ! -f "./images.txt" ]; then
     echo "Please enter the image in ./images.txt."
     exit 1
@@ -470,10 +474,63 @@ function scan-cve() {
   cat $output
 }
 
-function clean-image() {
-  if [ "$RUNTIME" = "docker" ]; then
+function scan_security_context() {
+  opts=(
+    no-new-privileges
+  )
+  for container in `$DOCKER_PS -q -a`; do
+    security_opt=$($DOCKER_INSPECT -f '{{.Id}} {{.Name}} {{.HostConfig.SecurityOpt}}' $container)
+    need_fix=false
+    # shellcheck disable=SC2068
+    for opt in ${opts[@]}; do
+      if [ "$(echo $security_opt | grep $opt)" = "" ]; then
+        need_fix=true
+      fi
+    done
+    if [ "$need_fix" = "true" ]; then
+      echo $security_opt
+      echo ""
+    fi
+  done
+}
+
+function scan_host_network() {
+  for container in `$DOCKER_PS -q -a`; do
+    host_network=$($DOCKER_INSPECT -f '{{.Id}} {{.Name}} {{.HostConfig.NetworkMode}}' $container)
+    if [ "$(echo $host_network | grep host)" != "" ]; then
+      echo $host_network
+      echo ""
+    fi
+  done
+}
+
+function scan_host_pid() {
+  for container in `$DOCKER_PS -q -a`; do
+    host_network=$($DOCKER_INSPECT -f '{{.Id}} {{.Name}} {{.HostConfig.PidMode}}' $container)
+    if [ "$(echo $host_network | grep host)" != "" ]; then
+      echo $host_network
+      echo ""
+    fi
+  done
+}
+
+function scan_uts_ns() {
+  for container in `$DOCKER_PS -q -a`; do
+    host_network=$($DOCKER_INSPECT -f '{{.Id}} {{.Name}} {{.HostConfig.UTSMode}}' $container)
+    if [ "$(echo $host_network | grep host)" != "" ]; then
+      echo $host_network
+      echo ""
+    fi
+  done
+}
+
+function clean() {
+  docker_cmd=$(command -v docker)
+  isula_cmd=$(command -v isula)
+  if [ "$docker_cmd" != "" ]; then
     docker system prune -a -f
-  elif [ "$RUNTIME" = "isula" ]; then
+  fi
+  if [ "$isula_cmd" != "" ]; then
     images=$($DOCKER_IMAGE_LS | awk 'NR!=1 {print $3}')
     # shellcheck disable=SC2068
     for image in ${images[@]}; do
@@ -484,6 +541,7 @@ function clean-image() {
       fi
     done
   fi
+  history -c
 }
 
 function utils {
@@ -493,30 +551,58 @@ function utils {
 
   CMD=$1
   if [ "$CMD" = "privileged" ]; then
-    scan-privileged
+    scan_privileged
   elif [ "$CMD" = "root" ]; then
-    scan-root
+    scan_root
   elif [ "$CMD" = "tools" ]; then
-    scan-tools $2
+    scan_tools $2
   elif [ "$CMD" = "env" ]; then
-    scan-env
+    scan_env
   elif [ "$CMD" = "permission" ]; then
-    scan-permission $2
+    scan_permission $2
   elif [ "$CMD" = "token" ]; then
-    scan-token
+    scan_token
   elif [ "$CMD" = "openssl" ]; then
-    scan-openssl
+    scan_openssl
   elif [ "$CMD" = "noowner" ]; then
-    scan-noowner $2
+    scan_noowner $2
   elif [ "$CMD" = "compress" ]; then
-    scan-compress
+    scan_compress
   elif [ "$CMD" = "image" ]; then
 #    scan-fs $2
-    scan-cve $2
+    scan_cve $2
+  elif [ "$CMD" = "security_context" ]; then
+    scan_security_context
+  elif [ "$CMD" = "host_network" ]; then
+    scan_host_network
+  elif [ "$CMD" = "host_pid" ]; then
+    scan_host_pid
+  elif [ "$CMD" = "uts_ns" ]; then
+    scan_uts_ns
   elif [ "$CMD" = "clean" ]; then
-    clean-image
+    clean
+  elif [ "$CMD" = "-h" ] ||  [ "$CMD" = "" ]; then
+    echo "scan-image.sh"
+    echo "<command>:"
+    echo "    privileged"
+    echo "    root"
+    echo "    tools"
+    echo "    env"
+    echo "    permission"
+    echo "    token"
+    echo "    openssl"
+    echo "    noowner"
+    echo "    security_context"
+    echo "    host_network"
+    echo "    host_pid"
+    echo "    uts_ns"
+    echo "    clean"
+    echo "    compress"
+    echo "    image"
   fi
-  echo "Finish scan $CMD"
+  if [ "$CMD" != "" ]; then
+    echo "Finish scan $CMD"
+  fi
 }
 
 utils $1 $2
