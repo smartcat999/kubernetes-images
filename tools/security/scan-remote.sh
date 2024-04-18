@@ -141,8 +141,8 @@ function dump_uts_ns {
 }
 
 function clean_image_unused() {
-  ./scan-image.sh clean
   batch_run "$root_dir/scan-image.sh clean"
+  ./scan-image.sh clean
 }
 
 function dump_system_account() {
