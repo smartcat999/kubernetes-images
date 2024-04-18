@@ -170,4 +170,21 @@ elif [ "$CMD" = "account" ]; then
   dump_system_account
 elif [ "$CMD" = "clean" ]; then
   clean_image_unused
+elif [ "$CMD" = "-h" ] ||  [ "$CMD" = "" ]; then
+  echo "scan-remote.sh"
+  echo "<command>:"
+  echo "    copy_id"
+  echo "    root"
+  echo "    tools"
+  echo "    env"
+  echo "    permission"
+  echo "    token"
+  echo "    openssl"
+  echo "    noowner"
+  echo "    security_context"
+  echo "    host_network"
+  echo "    host_pid"
+  echo "    uts_ns"
+  echo "    account"
+  echo "    clean"
 fi
