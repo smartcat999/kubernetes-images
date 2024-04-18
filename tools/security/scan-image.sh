@@ -42,7 +42,13 @@
 if [[ ${debug:-flase} = "true" ]]; then
   set -x
 fi
-RUNTIME=${RUNTIME:-isula}
+
+if [ "$(ps -ef|grep kubelet |grep isulad.sock)" != "" ];then
+  runtime_builtin=isula
+else
+  runtime_builtin=docker
+fi
+RUNTIME=${RUNTIME:-$runtime_builtin}
 DOCKER_IMAGE_LS="docker image ls"
 DOCKER_PS="docker ps"
 DOCKER_INSPECT="docker inspect"
@@ -58,6 +64,23 @@ if [ $RUNTIME = "isula" ]; then
   DOCKER_RMI="isula rmi"
   DOCKER_PULL="isula pull"
 fi
+
+function clean_exited_container() {
+  if [ "$(command -v docker)" != "" ]; then
+    for container in `docker ps -a | grep Exited | awk '{print $1}'`; do
+      echo "clean docker container $container"
+      docker rm $container
+      echo ""
+    done
+  fi
+  if [ "$(command -v isula)" != "" ]; then
+    for container in `isula ps -a | grep Exited | awk '{print $1}'`; do
+      echo "clean isula container $container"
+      isula rm $container
+      echo ""
+    done
+  fi
+}
 
 function scan_privileged() {
   $DOCKER_PS --quiet -a | xargs $DOCKER_INSPECT --format='{{index .RepoTags 0}} {{.HostConfig.Privileged}}' 2>/dev/null | grep true | awk '{print $1}'
@@ -475,6 +498,7 @@ function scan_cve() {
 }
 
 function scan_security_context() {
+  clean_exited_container
   opts=(
     no-new-privileges
   )
@@ -495,6 +519,7 @@ function scan_security_context() {
 }
 
 function scan_host_network() {
+  clean_exited_container
   for container in `$DOCKER_PS -q -a`; do
     host_network=$($DOCKER_INSPECT -f '{{.Id}} {{.Name}} {{.HostConfig.NetworkMode}}' $container)
     if [ "$(echo $host_network | grep host)" != "" ]; then
@@ -505,6 +530,7 @@ function scan_host_network() {
 }
 
 function scan_host_pid() {
+  clean_exited_container
   for container in `$DOCKER_PS -q -a`; do
     host_network=$($DOCKER_INSPECT -f '{{.Id}} {{.Name}} {{.HostConfig.PidMode}}' $container)
     if [ "$(echo $host_network | grep host)" != "" ]; then
@@ -515,6 +541,7 @@ function scan_host_pid() {
 }
 
 function scan_uts_ns() {
+  clean_exited_container
   for container in `$DOCKER_PS -q -a`; do
     host_network=$($DOCKER_INSPECT -f '{{.Id}} {{.Name}} {{.HostConfig.UTSMode}}' $container)
     if [ "$(echo $host_network | grep host)" != "" ]; then

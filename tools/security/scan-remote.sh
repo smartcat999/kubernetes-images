@@ -34,7 +34,7 @@ if [ ${debug:-false} = true ]; then
 fi
 
 target=${target:-172.31.0.11 172.31.0.12 172.31.0.13 172.31.0.14 172.31.0.15 172.31.0.16 172.31.0.17 172.31.0.18 172.31.0.19}
-root_dir=${root_dir:-/root/}
+root_dir=${root_dir:-/root}
 
 hostname=$(sh -c hostname)
 node_ip=$(kubectl get node -o wide | grep "$hostname" | awk '{print $6}')
@@ -48,7 +48,16 @@ for elem in ${target[@]}; do
   if [ "$elem" = "$node_ip" ]; then
     continue
   fi
-  scp -q scan-image.sh security-account.sh "root@$elem:$root_dir"
+  files=(
+    scan-image.sh
+    security-account.sh
+  )
+  # shellcheck disable=SC1058
+  for file in ${files[@]}; do
+    if [ -f "$root_dir/$file" ]; then
+      scp -q $root_dir/$file "root@$elem:$root_dir"
+    fi
+  done
 done
 
 function batch_run() {
