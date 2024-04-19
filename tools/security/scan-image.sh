@@ -454,7 +454,7 @@ function untar-files() {
 #  done
 }
 
-function scan-image() {
+function scan_image() {
   image=$1
   output=$2
   dirs=(
@@ -492,7 +492,7 @@ function scan_cve() {
   # shellcheck disable=SC2068
   for image in ${images[@]}; do
     $DOCKER_PULL $image
-    scan-image $image $output
+    scan_image $image $output
   done
   cat $output
 }
