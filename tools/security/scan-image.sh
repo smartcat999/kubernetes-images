@@ -43,6 +43,10 @@ if [[ ${debug:-flase} = "true" ]]; then
   set -x
 fi
 
+hostname=$(sh -c hostname)
+node_ip=$(kubectl get node -o wide | grep "$hostname" | awk '{print $6}')
+echo "node_ip: $node_ip"
+
 if [ "$(ps -ef|grep kubelet |grep isulad.sock)" != "" ];then
   runtime_builtin=isula
 else

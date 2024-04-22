@@ -141,10 +141,15 @@ function dump_uts_ns {
 }
 
 function clean_image_unused() {
+  need_reboot=${need_reboot:false}
   batch_run "$root_dir/scan-image.sh clean"
-  batch_run "reboot"
+  if [ "$need_reboot" = "true" ]; then
+    batch_run "reboot"
+  fi
   ./scan-image.sh clean
-  reboot
+  if [ "$need_reboot" = "true" ]; then
+    reboot
+  fi
 }
 
 function dump_system_account() {
