@@ -567,6 +567,7 @@ function clean() {
         echo "remove ${image}"
       fi
     done
+    isula images | awk '{print $3}' | xargs isula rmi
   fi
   history -c
 }
