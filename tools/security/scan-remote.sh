@@ -141,7 +141,7 @@ function dump_uts_ns {
 }
 
 function clean_image_unused() {
-  need_reboot=${need_reboot:false}
+  need_reboot=${need_reboot:-false}
   batch_run "$root_dir/scan-image.sh clean"
   if [ "$need_reboot" = "true" ]; then
     batch_run "reboot"
