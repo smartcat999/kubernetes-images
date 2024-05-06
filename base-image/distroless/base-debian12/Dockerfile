@@ -1,7 +1,7 @@
-FROM 2030047311/base-debian12:nonroot-debug as os
+FROM gcr.io/distroless/base-debian12:debug-nonroot as os
 
 
-FROM 2030047311/base-debian12:nonroot as base
+FROM gcr.io/distroless/base-debian12:nonroot as base
 
 USER root
 COPY --from=os /busybox/sh /bin/sh

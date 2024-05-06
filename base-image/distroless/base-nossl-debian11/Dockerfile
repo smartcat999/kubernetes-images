@@ -1,7 +1,7 @@
-FROM 2030047311/base-nossl-debian11:nonroot-debug as os
+FROM gcr.io/distroless/base-nossl-debian11:debug-nonroot as os
 
 
-FROM 2030047311/base-nossl-debian11:nonroot as base
+FROM gcr.io/distroless/base-nossl-debian11:nonroot as base
 
 USER root
 COPY --from=os /busybox/sh /bin/sh
