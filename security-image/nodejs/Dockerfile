@@ -1,7 +1,7 @@
 FROM alpine:edge as openssl
 
-ENV OPENSSL_VERSION openssl-3.1.4-quic1
-ENV NODE_VERSION 21.5.0
+ENV OPENSSL_VERSION openssl-3.3.0
+ENV NODE_VERSION 22.1.0
 ENV NODE_BRANCH main
 
 WORKDIR /tmp
@@ -52,7 +52,7 @@ FROM alpine:edge as base
 
 COPY --from=openssl /tmp/node /tmp/node
 
-ENV NODE_VERSION 21.5.0
+ENV NODE_VERSION 22.1.0
 
 RUN apk update \
 #    && addgroup -g 1000 node \
@@ -125,6 +125,7 @@ RUN rm /usr/bin/id && find /etc ! -perm 600 -name "*.crt" -o ! -perm 600 -name "
     find /usr ! -perm 640 -name "*.conf" 2>/dev/null | xargs -I {} chmod 640 {} && \
     rm /etc/ssl/cert.pem && rm -rf /etc/ssl/certs/ && rm -rf /etc/ssl1.1
 
+RUN rm /usr/bin/nc
 
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
@@ -134,7 +135,7 @@ CMD [ "node" ]
 
 FROM scratch
 
-ENV NODE_VERSION 21.5.0
+ENV NODE_VERSION 22.1.0
 
 COPY --from=base / /
 
