@@ -1,6 +1,6 @@
 FROM alpine:edge as openssl
 
-ENV OPENSSL_VERSION openssl-3.3.0
+ENV OPENSSL_VERSION openssl-3.1.5+quic
 ENV NODE_VERSION 22.1.0
 ENV NODE_BRANCH main
 
