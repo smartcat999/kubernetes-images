@@ -52,7 +52,7 @@ FROM alpine:edge as base
 
 COPY --from=openssl /tmp/node /tmp/node
 
-ENV NODE_VERSION 22.1.0
+ENV NODE_VERSION 21.5.0
 
 RUN apk update \
 #    && addgroup -g 1000 node \
@@ -135,7 +135,7 @@ CMD [ "node" ]
 
 FROM scratch
 
-ENV NODE_VERSION 22.1.0
+ENV NODE_VERSION 21.5.0
 
 COPY --from=base / /
 
