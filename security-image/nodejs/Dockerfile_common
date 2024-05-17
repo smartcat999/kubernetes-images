@@ -1,8 +1,8 @@
 FROM alpine:edge as openssl
 
-ENV OPENSSL_VERSION openssl-3.1.4-quic1
+ENV OPENSSL_VERSION openssl-3.1.5-quic1
 ENV NODE_VERSION 21.5.0
-ENV NODE_BRANCH main
+ENV NODE_BRANCH v21.5.0
 
 WORKDIR /tmp
 
