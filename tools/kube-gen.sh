@@ -6,6 +6,7 @@ set -x
 
 MASTER_IP=$1
 MASTER_PORT=${2:-'6443'}
+DNS=$3
 
 echo "Prepare add new server ip $MASTER_IP:$MASTER_PORT"
 
@@ -18,7 +19,11 @@ echo "Remove /etc/kubernetes/pki/apiserver.*"
 APISERVER=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml |grep '\-\-advertise-address' | awk -F"=" '{print $2}')
 echo "APISERVER_ADVERTISE_ADDRESS: $APISERVER"
 
-kubeadm init phase certs apiserver --apiserver-advertise-address ${APISERVER} --apiserver-cert-extra-sans ${MASTER_IP}
+if [ $DNS = "" ]; then
+  kubeadm init phase certs apiserver --apiserver-advertise-address ${APISERVER} --apiserver-cert-extra-sans ${MASTER_IP}
+else
+  kubeadm init phase certs apiserver --apiserver-advertise-address ${APISERVER} --apiserver-cert-extra-sans ${MASTER_IP} --apiserver-cert-extra-sans $DNS
+fi
 
 cd /etc/kubernetes/pki && kubeadm certs renew admin.conf
 echo "Regenerate cert finished"
@@ -34,8 +39,14 @@ echo "Update ~/.kube/config"
 cp /etc/kubernetes/admin.conf $HOME/.kube/config
 
 cluster=$(cat $HOME/.kube/config |grep "  cluster:" | awk -F ': ' '{print $2}')
-echo "Update cluster: $cluster server: https://${MASTER_IP}:${MASTER_PORT}"
-kubectl config set clusters.$cluster.server https://${MASTER_IP}:${MASTER_PORT} --kubeconfig=$HOME/.kube/config
+
+if [ $DNS = "" ]; then
+  echo "Update cluster: $cluster server: https://${MASTER_IP}:${MASTER_PORT}"
+  kubectl config set clusters.$cluster.server https://${MASTER_IP}:${MASTER_PORT} --kubeconfig=$HOME/.kube/config
+else
+  echo "Update cluster: $cluster server: https://${DNS}:${MASTER_PORT}"
+  kubectl config set clusters.$cluster.server https://${DNS}:${MASTER_PORT} --kubeconfig=$HOME/.kube/config
+fi
 
 echo "Please wait for the kube-apiserver to restart"
 echo "You can look at this kubeconfig with 'cat $HOME/.kube/config'"
