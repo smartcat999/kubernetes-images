@@ -1,4 +1,4 @@
-FROM alpine:3.16 as openssl
+FROM alpine:edge as openssl
 
 ENV OPENSSL_VERSION openssl-3.1.5-quic1
 ENV NODE_VERSION 21.5.0
@@ -48,7 +48,7 @@ RUN cd /tmp/node \
     && git commit -m "deps: update archs files for quictls/${OPENSSL_VERSION}"
 
 
-FROM alpine:3.16 as base
+FROM alpine:edge as base
 
 COPY --from=openssl /tmp/node /tmp/node
 
