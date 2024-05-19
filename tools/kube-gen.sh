@@ -7,6 +7,7 @@ set -x
 MASTER_IP=$1
 MASTER_PORT=${2:-'6443'}
 DNS=$3
+KUBE_ADMIN_CONF=/etc/kubernetes/kubeadm-config.yaml
 
 echo "Prepare add new server ip $MASTER_IP:$MASTER_PORT"
 
@@ -19,12 +20,14 @@ echo "Remove /etc/kubernetes/pki/apiserver.*"
 APISERVER=$(cat /etc/kubernetes/manifests/kube-apiserver.yaml |grep '\-\-advertise-address' | awk -F"=" '{print $2}')
 echo "APISERVER_ADVERTISE_ADDRESS: $APISERVER"
 
-if [ $DNS = "" ]; then
-  kubeadm init phase certs apiserver --apiserver-advertise-address ${APISERVER} --apiserver-cert-extra-sans ${MASTER_IP}
+
+if [ "$DNS" = "" ]; then
+  sed -i '/certSANs/a\\    - "'${APISERVER}'"' $KUBE_ADMIN_CONF
 else
-  kubeadm init phase certs apiserver --apiserver-advertise-address ${APISERVER} --apiserver-cert-extra-sans ${MASTER_IP} --apiserver-cert-extra-sans $DNS
+  sed -i '/certSANs/a\\    - "'${APISERVER}'"\n    - "'$DNS'"' $KUBE_ADMIN_CONF
 fi
 
+kubeadm init phase certs apiserver --config $KUBE_ADMIN_CONF
 cd /etc/kubernetes/pki && kubeadm certs renew admin.conf
 echo "Regenerate cert finished"
 echo "Sleep 5s"
