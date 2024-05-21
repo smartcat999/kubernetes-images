@@ -1,0 +1,21 @@
+name: UnitTest
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  EchoGithubMeta:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Event name
+        run: |
+          echo ${{ github.event_name }}
